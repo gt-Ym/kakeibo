@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>給与入力 - 家計簿</title>
+  <link rel="stylesheet" href="../css/salary.css">
+  <link rel="stylesheet" href="../css/header.css">
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js" defer></script>
+  <script src="../js/config.js" defer></script>
+  <script src="../js/firebase.js" defer></script>
+  <script src="../js/firebaseDb.js?v=2" defer></script>
+  <script src="../js/utils.js?v=4" defer></script>
+  <script src="../js/login.js" defer></script>
+  <script src="../js/salary.js?v=2b" defer></script>
+  <script src="../js/header.js" defer></script>
+</head>
+<body onload="checkAuth()">
+  <div id="app-header"></div>
+  <div class="page-wrapper">
+    <main class="card">
+
+      <header class="card-header">
+        <h1 class="card-title">給与入力</h1>
+        <p class="card-subtitle">月次の給与データを一括入力します。金額を入力した行のみ送信されます。</p>
+      </header>
+
+      <!-- 日付（全行共通） -->
+      <div class="date-row">
+        <label for="salary-date">対象日付</label>
+        <input type="date" id="salary-date" class="form-input">
+        <span class="date-hint">※ すべての行に同じ日付が使用されます</span>
+      </div>
+
+      <!-- ツールバー -->
+      <div class="table-toolbar">
+        <button class="btn btn-add" onclick="addRow()">＋ 行を追加</button>
+        <button class="btn btn-restore" onclick="loadFromLocalStorage()">前回の入力を反映</button>
+      </div>
+
+      <!-- 入力テーブル
+           拡張方法: <tbody id="salary-body"> に <tr data-category="1|2"
+                     data-default-item="項目名" data-default-method="方法名"> を追加するだけ
+      -->
+      <div class="table-scroll">
+        <table class="salary-table">
+          <thead>
+            <tr>
+              <th class="col-drag"></th>
+              <th class="col-category">カテゴリ</th>
+              <th class="col-item">項目</th>
+              <th class="col-method">決済方法</th>
+              <th class="col-amount">金額 (円)</th>
+              <th class="col-memo">メモ</th>
+              <th class="col-action"></th>
+            </tr>
+          </thead>
+          <tbody id="salary-body">
+
+            <!-- ───── 収入 ───── -->
+            <tr data-category="1" data-default-item="基本給" data-default-method="銀行振込">
+              <td class="col-drag"><span class="drag-handle" title="ドラッグで並び替え">⠿</span></td>
+              <td class="col-category">
+                <select class="row-category form-input" onchange="handleCategoryChange(this)">
+                  <option value="1">収入</option>
+                  <option value="2">支出</option>
+                </select>
+              </td>
+              <td class="col-item"><select class="row-item form-input"></select></td>
+              <td class="col-method"><select class="row-method form-input"></select></td>
+              <td class="col-amount"><input type="number" class="row-amount form-input" min="0" step="1" placeholder="0"></td>
+              <td class="col-memo"><input type="text" class="row-memo form-input" placeholder="メモ（任意）"></td>
+              <td class="col-action"><button class="btn-delete" onclick="deleteRow(this)" title="行を削除">×</button></td>
+            </tr>
+
+            <tr data-category="1" data-default-item="技術手当" data-default-method="銀行振込">
+              <td class="col-drag"><span class="drag-handle" title="ドラッグで並び替え">⠿</span></td>
+              <td class="col-category">
+                <select class="row-category form-input" onchange="handleCategoryChange(this)">
+                  <option value="1">収入</option>
+                  <option value="2">支出</option>
+                </select>
+              </td>
+              <td class="col-item"><select class="row-item form-input"></select></td>
+              <td class="col-method"><select class="row-method form-input"></select></td>
+              <td class="col-amount"><input type="number" class="row-amount form-input" min="0" step="1" placeholder="0"></td>
+              <td class="col-memo"><input type="text" class="row-memo form-input" placeholder="メモ（任意）"></td>
+              <td class="col-action"><button class="btn-delete" onclick="deleteRow(this)" title="行を削除">×</button></td>
+            </tr>
+
+            <tr data-category="1" data-default-item="通勤手当" data-default-method="銀行振込">
+              <td class="col-drag"><span class="drag-handle" title="ドラッグで並び替え">⠿</span></td>
+              <td class="col-category">
+                <select class="row-category form-input" onchange="handleCategoryChange(this)">
+                  <option value="1">収入</option>
+                  <option value="2">支出</option>
+                </select>
+              </td>
+              <td class="col-item"><select class="row-item form-input"></select></td>
+              <td class="col-method"><select class="row-method form-input"></select></td>
+              <td class="col-amount"><input type="number" class="row-amount form-input" min="0" step="1" placeholder="0"></td>
+              <td class="col-memo"><input type="text" class="row-memo form-input" placeholder="メモ（任意）"></td>
+              <td class="col-action"><button class="btn-delete" onclick="deleteRow(this)" title="行を削除">×</button></td>
+            </tr>
+
+            <tr data-category="1" data-default-item="時間外勤務手当" data-default-method="銀行振込">
+              <td class="col-drag"><span class="drag-handle" title="ドラッグで並び替え">⠿</span></td>
+              <td class="col-category">
+                <select class="row-category form-input" onchange="handleCategoryChange(this)">
+                  <option value="1">収入</option>
+                  <option value="2">支出</option>
+                </select>
+              </td>
+              <td class="col-item"><select class="row-item form-input"></select></td>
+              <td class="col-method"><select class="row-method form-input"></select></td>
+              <td class="col-amount"><input type="number" class="row-amount form-input" min="0" step="1" placeholder="0"></td>
+              <td class="col-memo"><input type="text" class="row-memo form-input" placeholder="メモ（任意）"></td>
+              <td class="col-action"><button class="btn-delete" onclick="deleteRow(this)" title="行を削除">×</button></td>
+            </tr>
+
+            <tr data-category="1" data-default-item="資格手当" data-default-method="銀行振込">
+              <td class="col-drag"><span class="drag-handle" title="ドラッグで並び替え">⠿</span></td>
+              <td class="col-category">
+                <select class="row-category form-input" onchange="handleCategoryChange(this)">
+                  <option value="1">収入</option>
+                  <option value="2">支出</option>
+                </select>
+              </td>
+              <td class="col-item"><select class="row-item form-input"></select></td>
+              <td class="col-method"><select class="row-method form-input"></select></td>
+              <td class="col-amount"><input type="number" class="row-amount form-input" min="0" step="1" placeholder="0"></td>
+              <td class="col-memo"><input type="text" class="row-memo form-input" placeholder="メモ（任意）"></td>
+              <td class="col-action"><button class="btn-delete" onclick="deleteRow(this)" title="行を削除">×</button></td>
+            </tr>
+
+            <!-- ───── 支出（控除） ───── -->
+            <tr data-category="2" data-default-item="健康保険" data-default-method="口座引き落とし">
+              <td class="col-drag"><span class="drag-handle" title="ドラッグで並び替え">⠿</span></td>
+              <td class="col-category">
+                <select class="row-category form-input" onchange="handleCategoryChange(this)">
+                  <option value="1">収入</option>
+                  <option value="2">支出</option>
+                </select>
+              </td>
+              <td class="col-item"><select class="row-item form-input"></select></td>
+              <td class="col-method"><select class="row-method form-input"></select></td>
+              <td class="col-amount"><input type="number" class="row-amount form-input" min="0" step="1" placeholder="0"></td>
+              <td class="col-memo"><input type="text" class="row-memo form-input" placeholder="メモ（任意）"></td>
+              <td class="col-action"><button class="btn-delete" onclick="deleteRow(this)" title="行を削除">×</button></td>
+            </tr>
+
+            <tr data-category="2" data-default-item="厚生年金" data-default-method="口座引き落とし">
+              <td class="col-drag"><span class="drag-handle" title="ドラッグで並び替え">⠿</span></td>
+              <td class="col-category">
+                <select class="row-category form-input" onchange="handleCategoryChange(this)">
+                  <option value="1">収入</option>
+                  <option value="2">支出</option>
+                </select>
+              </td>
+              <td class="col-item"><select class="row-item form-input"></select></td>
+              <td class="col-method"><select class="row-method form-input"></select></td>
+              <td class="col-amount"><input type="number" class="row-amount form-input" min="0" step="1" placeholder="0"></td>
+              <td class="col-memo"><input type="text" class="row-memo form-input" placeholder="メモ（任意）"></td>
+              <td class="col-action"><button class="btn-delete" onclick="deleteRow(this)" title="行を削除">×</button></td>
+            </tr>
+
+            <tr data-category="2" data-default-item="雇用保険" data-default-method="口座引き落とし">
+              <td class="col-drag"><span class="drag-handle" title="ドラッグで並び替え">⠿</span></td>
+              <td class="col-category">
+                <select class="row-category form-input" onchange="handleCategoryChange(this)">
+                  <option value="1">収入</option>
+                  <option value="2">支出</option>
+                </select>
+              </td>
+              <td class="col-item"><select class="row-item form-input"></select></td>
+              <td class="col-method"><select class="row-method form-input"></select></td>
+              <td class="col-amount"><input type="number" class="row-amount form-input" min="0" step="1" placeholder="0"></td>
+              <td class="col-memo"><input type="text" class="row-memo form-input" placeholder="メモ（任意）"></td>
+              <td class="col-action"><button class="btn-delete" onclick="deleteRow(this)" title="行を削除">×</button></td>
+            </tr>
+
+            <tr data-category="2" data-default-item="所得税" data-default-method="口座引き落とし">
+              <td class="col-drag"><span class="drag-handle" title="ドラッグで並び替え">⠿</span></td>
+              <td class="col-category">
+                <select class="row-category form-input" onchange="handleCategoryChange(this)">
+                  <option value="1">収入</option>
+                  <option value="2">支出</option>
+                </select>
+              </td>
+              <td class="col-item"><select class="row-item form-input"></select></td>
+              <td class="col-method"><select class="row-method form-input"></select></td>
+              <td class="col-amount"><input type="number" class="row-amount form-input" min="0" step="1" placeholder="0"></td>
+              <td class="col-memo"><input type="text" class="row-memo form-input" placeholder="メモ（任意）"></td>
+              <td class="col-action"><button class="btn-delete" onclick="deleteRow(this)" title="行を削除">×</button></td>
+            </tr>
+
+            <tr data-category="2" data-default-item="住民税" data-default-method="口座引き落とし">
+              <td class="col-drag"><span class="drag-handle" title="ドラッグで並び替え">⠿</span></td>
+              <td class="col-category">
+                <select class="row-category form-input" onchange="handleCategoryChange(this)">
+                  <option value="1">収入</option>
+                  <option value="2">支出</option>
+                </select>
+              </td>
+              <td class="col-item"><select class="row-item form-input"></select></td>
+              <td class="col-method"><select class="row-method form-input"></select></td>
+              <td class="col-amount"><input type="number" class="row-amount form-input" min="0" step="1" placeholder="0"></td>
+              <td class="col-memo"><input type="text" class="row-memo form-input" placeholder="メモ（任意）"></td>
+              <td class="col-action"><button class="btn-delete" onclick="deleteRow(this)" title="行を削除">×</button></td>
+            </tr>
+
+            <tr data-category="2" data-default-item="互助会" data-default-method="口座引き落とし">
+              <td class="col-drag"><span class="drag-handle" title="ドラッグで並び替え">⠿</span></td>
+              <td class="col-category">
+                <select class="row-category form-input" onchange="handleCategoryChange(this)">
+                  <option value="1">収入</option>
+                  <option value="2">支出</option>
+                </select>
+              </td>
+              <td class="col-item"><select class="row-item form-input"></select></td>
+              <td class="col-method"><select class="row-method form-input"></select></td>
+              <td class="col-amount"><input type="number" class="row-amount form-input" min="0" step="1" placeholder="0"></td>
+              <td class="col-memo"><input type="text" class="row-memo form-input" placeholder="メモ（任意）"></td>
+              <td class="col-action"><button class="btn-delete" onclick="deleteRow(this)" title="行を削除">×</button></td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+
+      <div class="form-actions">
+        <a href="menu.html" class="btn btn-outline">メニューへ</a>
+        <button id="submit-btn" class="btn btn-primary" onclick="submitSalary()">一括送信</button>
+      </div>
+
+    </main>
+  </div>
+</body>
+</html>

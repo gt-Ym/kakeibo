@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>定期購入メニュー | 家計簿</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="../css/header.css" />
+  <link rel="stylesheet" href="../css/menu.css" />
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js" defer></script>
+  <script src="../js/firebase.js" defer></script>
+  <script src="../js/firebaseDb.js?v=2" defer></script>
+  <script src="../js/login.js" defer></script>
+  <script src="../js/header.js" defer></script>
+</head>
+<body onload="checkAuth()">
+  <div id="app-header"></div>
+  <div class="page-wrapper">
+    <main class="card">
+        <header class="card-header">
+            <h1 class="card-title">定期購入メニュー</h1>
+            <p>定期的に発生する取引のカテゴリを選択してください。</p>
+        </header>
+        <div class="menu-grid">
+            <a href="subscription.html?categoryId=1" class="menu-card income">
+                <div class="menu-card-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="menu-card-content">
+                    <h2>定期収入</h2>
+                    <p>給与や定期的な報酬など、繰り返し発生する収入を登録します。</p>
+                </div>
+            </a>
+            <a href="subscription.html?categoryId=2" class="menu-card expense">
+                <div class="menu-card-icon">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <div class="menu-card-content">
+                    <h2>定期支出</h2>
+                    <p>サブスクリプションや月額サービスなど、定期的な支出を登録します。</p>
+                </div>
+            </a>
+            <a href="subscription.html?categoryId=3" class="menu-card charge">
+                <div class="menu-card-icon">
+                    <i class="fas fa-redo-alt"></i>
+                </div>
+                <div class="menu-card-content">
+                    <h2>定期チャージ</h2>
+                    <p>定期的な電子マネーチャージや交通系ICへの自動チャージを登録します。</p>
+                </div>
+            </a>
+        </div>
+        <div style="margin-top: 24px; text-align: center;">
+            <a href="menu.html" style="color: #666; text-decoration: none; font-size: 0.95rem;">
+                <i class="fas fa-arrow-left"></i> メインメニューに戻る
+            </a>
+        </div>
+    </main>
+  </div>
+</body>
+</html>

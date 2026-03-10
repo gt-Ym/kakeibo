@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>予算管理 | 家計簿</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="../css/header.css" />
+  <link rel="stylesheet" href="../css/menu.css" />
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js" defer></script>
+  <script src="../js/firebase.js" defer></script>
+  <script src="../js/firebaseDb.js?v=2" defer></script>
+  <script src="../js/utils.js?v=4" defer></script>
+  <script src="../js/login.js" defer></script>
+  <script src="../js/budget.js" defer></script>
+  <script src="../js/header.js" defer></script>
+</head>
+<body onload="checkAuth()">
+  <div id="app-header"></div>
+  <div class="page-wrapper">
+    <main class="card">
+      <div class="budget-page-header">
+        <div class="budget-section-title-row">
+          <h1 class="budget-page-title">予算管理</h1>
+          <span id="budget-month-label" class="budget-month-label"></span>
+        </div>
+        <a href="menu.html" class="budget-back-link"><i class="fas fa-chevron-left"></i> メニューに戻る</a>
+      </div>
+
+      <div class="budget-cat-tabs">
+        <button class="budget-tab" id="budget-cat-1" onclick="switchBudgetCategory('1')">収入</button>
+        <button class="budget-tab" id="budget-cat-2" onclick="switchBudgetCategory('2')">支出</button>
+        <button class="budget-tab" id="budget-cat-3" onclick="switchBudgetCategory('3')">チャージ</button>
+      </div>
+
+      <div class="budget-table-wrapper">
+        <table class="budget-table">
+          <thead>
+            <tr>
+              <th>項目</th>
+              <th>目標金額</th>
+              <th>実績 / 進捗</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="budget-tbody">
+            <tr><td colspan="4" class="budget-empty">読み込み中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

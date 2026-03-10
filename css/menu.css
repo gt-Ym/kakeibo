@@ -1,0 +1,454 @@
+/* ページ全体の基本スタイル */
+body {
+  font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+  background-color: #f4f7f9;
+  margin: 0;
+}
+
+.page-wrapper {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 0 15px;
+}
+
+/* カードの基本スタイル（他のページと共通化） */
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+}
+
+.card-header {
+  margin-bottom: 24px;
+  border-bottom: 2px solid #f0f2f5;
+  padding-bottom: 16px;
+}
+
+.card-header .card-title {
+  font-size: 1.6rem;
+  color: #333;
+  margin: 0;
+}
+
+.card-header p {
+  color: #666;
+  font-size: 0.95rem;
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+
+/* メニューカードのグリッドレイアウト */
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+}
+
+/* メニューカード本体 */
+.menu-card {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 24px;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid #e5e7eb;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.menu-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* カード内のアイコン部分 */
+.menu-card-icon {
+  font-size: 2rem;
+  margin-right: 20px;
+  width: 50px;
+  text-align: center;
+}
+
+.menu-card-content h2 {
+  margin: 0 0 8px 0;
+  font-size: 1.2rem;
+  color: #222;
+}
+
+.menu-card-content p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* 各カードのカラーテーマ */
+.menu-card.income .menu-card-icon { color: #16a34a; }
+.menu-card.expense .menu-card-icon { color: #b91c1c; }
+.menu-card.charge .menu-card-icon { color: #1d4ed8; }
+.menu-card.manage .menu-card-icon { color: #ea580c; }
+.menu-card.subscription .menu-card-icon { color: #7c3aed; }
+.menu-card.sub-manage .menu-card-icon { color: #0891b2; }
+.menu-card.salary     .menu-card-icon { color: #d97706; }
+.menu-card.budget     .menu-card-icon { color: #0d9488; }
+.menu-card.master     .menu-card-icon { color: #6b7280; }
+
+/* レスポンシブ対応（スマホで2列表示） */
+@media (max-width: 768px) {
+  .menu-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .menu-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px 12px;
+  }
+
+  .menu-card-icon {
+    margin-right: 0;
+    margin-bottom: 12px;
+    font-size: 2.5rem;
+  }
+
+  .menu-card-content h2 {
+    font-size: 1rem;
+  }
+
+  .menu-card-content p {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 16px;
+  }
+
+  .menu-grid {
+    gap: 12px;
+  }
+
+  .menu-card {
+    padding: 16px 10px;
+  }
+
+  .menu-card-icon {
+    font-size: 2rem;
+  }
+
+  .menu-card-content h2 {
+    font-size: 0.9rem;
+  }
+
+  .menu-card-content p {
+    font-size: 0.75rem;
+  }
+}
+
+/* ─────────────────────────────────────────
+   予算目標セクション
+───────────────────────────────────────── */
+
+.budget-section {
+  margin-top: 0;
+}
+
+.budget-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #f0f2f5;
+  padding-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.budget-section-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+/* 詳細リンク（menu.html → budget.html） */
+.budget-detail-link {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #4a90e2;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+
+.budget-detail-link:hover {
+  color: #357abd;
+  text-decoration: underline;
+}
+
+/* budget.html ページヘッダー */
+.budget-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #f0f2f5;
+  padding-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.budget-page-title {
+  font-size: 1.5rem;
+  color: #333;
+  margin: 0;
+}
+
+/* 戻るリンク（budget.html → menu.html） */
+.budget-back-link {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #6b7280;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+
+.budget-back-link:hover {
+  color: #374151;
+  text-decoration: underline;
+}
+
+.budget-section-title {
+  font-size: 1.3rem;
+  color: #333;
+  margin: 0;
+}
+
+.budget-month-label {
+  font-size: 0.95rem;
+  color: #666;
+}
+
+/* カテゴリタブ */
+.budget-cat-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.budget-tab {
+  padding: 6px 18px;
+  border: 1px solid #d1d5db;
+  border-radius: 20px;
+  background: #f9fafb;
+  color: #555;
+  font-size: 0.88rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.budget-tab:hover {
+  background: #e5e7eb;
+}
+
+.budget-tab.active          { background: #4a90e2; color: #fff; border-color: #4a90e2; }
+.budget-tab.active-income   { background: #16a34a; color: #fff; border-color: #16a34a; }
+.budget-tab.active-expense  { background: #dc2626; color: #fff; border-color: #dc2626; }
+.budget-tab.active-charge   { background: #0891b2; color: #fff; border-color: #0891b2; }
+
+/* テーブル */
+.budget-table-wrapper {
+  overflow-x: auto;
+}
+
+.budget-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 480px;
+}
+
+.budget-table thead tr {
+  background-color: #f8f9fa;
+}
+
+.budget-table th {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #555;
+  border-bottom: 2px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.budget-table td {
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  color: #333;
+  border-bottom: 1px solid #f0f2f5;
+  vertical-align: middle;
+}
+
+.budget-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.budget-empty {
+  text-align: center;
+  color: #999;
+  padding: 24px !important;
+  font-size: 0.9rem;
+}
+
+/* セル */
+.budget-name {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.budget-target-cell {
+  white-space: nowrap;
+  min-width: 120px;
+}
+
+.budget-target-val {
+  color: #444;
+}
+
+.budget-actual-cell {
+  min-width: 160px;
+}
+
+.budget-actual-val {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.budget-action-cell {
+  white-space: nowrap;
+}
+
+/* プログレスバー */
+.budget-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.budget-bar {
+  flex: 1;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  min-width: 60px;
+}
+
+.budget-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.budget-pct {
+  font-size: 0.78rem;
+  font-weight: bold;
+  color: #555;
+  white-space: nowrap;
+  min-width: 38px;
+}
+
+.budget-pct.over-budget {
+  color: #dc2626;
+}
+
+/* 編集ボタン */
+.budget-edit-btn {
+  padding: 4px 12px;
+  font-size: 0.82rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  background: #4a90e2;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.budget-edit-btn:hover {
+  background: #357abd;
+}
+
+/* インライン編集 */
+.budget-input {
+  width: 100px;
+  padding: 5px 8px;
+  border: 1px solid #4a90e2;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.budget-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.budget-edit-btns {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.budget-save-btn {
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  background: #16a34a;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.budget-save-btn:hover {
+  background: #15803d;
+}
+
+.budget-cancel-btn {
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  background: #9ca3af;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.budget-cancel-btn:hover {
+  background: #6b7280;
+}
+
+@media (max-width: 600px) {
+  .budget-table {
+    min-width: 360px;
+  }
+
+  .budget-section-header {
+    flex-direction: column;
+    gap: 4px;
+  }
+}

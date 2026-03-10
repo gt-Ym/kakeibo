@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>家計簿入力</title>
+  <link rel="stylesheet" href="../css/record.css" />
+  <link rel="stylesheet" href="../css/header.css" />
+  <link rel="stylesheet" href="../css/modal.css" />
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js" defer></script>
+  <script src="../js/firebase.js" defer></script>
+  <script src="../js/config.js" defer></script>
+  <script src="../js/firebaseDb.js?v=2" defer></script>
+  <script src="../js/utils.js?v=4" defer></script>
+  <script src="../js/login.js" defer></script>
+  <script src="../js/record.js" defer></script>
+  <script src="../js/header.js" defer></script>
+</head>
+<body onload="checkAuth()">
+  <div id="app-header"></div>
+  <div class="page-wrapper">
+    <main class="card" aria-labelledby="page-title">
+      <header class="card-header">
+        <h1 id="page-title" class="card-title">家計簿入力</h1>
+        <p class="card-subtitle">
+          順番に入力していきます
+        </p>
+      </header>
+    </main>
+  </div>
+
+  <!-- モーダル群 -->
+
+  <!-- 0. ローディングモーダル -->
+  <div id="modal-loading" class="modal-overlay">
+    <div class="modal-container modal-loading-content">
+      <p class="loading-text">読み込み中...</p>
+    </div>
+  </div>
+
+  <!-- 1. 項目選択モーダル -->
+  <div id="modal-item" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2 class="modal-title">項目を選択してください</h2>
+        <div class="modal-step">ステップ 1/5</div>
+      </div>
+      <div class="modal-body">
+        <div id="recent-items-buttons" class="recent-input-buttons" style="display: none;">
+          <!-- 最近の入力（最大3件）がここに動的に生成される -->
+        </div>
+        <select id="modal-itemId" class="modal-input">
+          <option value="">選択してください</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeAllModals()">キャンセル</button>
+        <button type="button" class="btn btn-primary" onclick="nextStep(1)">次へ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 決済方法選択モーダル -->
+  <div id="modal-method" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2 class="modal-title">決済方法を選択してください</h2>
+        <div class="modal-step">ステップ 2/5</div>
+      </div>
+      <div class="modal-body">
+        <div id="recent-methods-buttons" class="recent-input-buttons" style="display: none;">
+          <!-- 最近の入力（最大3件）がここに動的に生成される -->
+        </div>
+        <select id="modal-methodId" class="modal-input">
+          <option value="">選択してください</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="previousStep(2)">戻る</button>
+        <button type="button" class="btn btn-primary" onclick="nextStep(2)">次へ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 金額入力モーダル -->
+  <div id="modal-amount-overlay" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2 class="modal-title">金額を入力してください</h2>
+        <div class="modal-step">ステップ 3/5</div>
+      </div>
+      <div class="modal-body">
+        <input
+          type="text"
+          id="modal-amount"
+          class="modal-input"
+          inputmode="decimal"
+          placeholder="例: 1500 または 500+200"
+        />
+        <p class="modal-hint">半角数字、または + - * / で計算できます</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="previousStep(3)">戻る</button>
+        <button type="button" class="btn btn-primary" onclick="nextStep(3)">次へ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 日付選択モーダル -->
+  <div id="modal-date-overlay" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2 class="modal-title">日付を選択してください</h2>
+        <div class="modal-step">ステップ 4/5</div>
+      </div>
+      <div class="modal-body">
+        <input
+          type="date"
+          id="modal-date"
+          class="modal-input"
+        />
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="previousStep(4)">戻る</button>
+        <button type="button" class="btn btn-primary" onclick="nextStep(4)">次へ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. メモ入力モーダル -->
+  <div id="modal-memo-overlay" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2 class="modal-title">メモを入力してください（任意）</h2>
+        <div class="modal-step">ステップ 5/5</div>
+      </div>
+      <div class="modal-body">
+        <input
+          type="text"
+          id="modal-memo"
+          class="modal-input"
+          placeholder="例: ランチ代"
+        />
+        <p class="modal-hint">空欄でもOKです</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="previousStep(5)">戻る</button>
+        <button type="button" class="btn btn-primary" onclick="nextStep(5)">確認画面へ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 確認モーダル -->
+  <div id="modal-confirm" class="modal-overlay">
+    <div class="modal-container modal-large">
+      <div class="modal-header">
+        <h2 class="modal-title">入力内容の確認</h2>
+      </div>
+      <div class="modal-body">
+        <p class="modal-hint">内容を確認してください。修正する場合は各項目を直接編集できます。</p>
+
+        <div class="confirm-row">
+          <label class="confirm-label">項目</label>
+          <select id="confirm-itemId" class="confirm-input">
+          </select>
+        </div>
+
+        <div class="confirm-row">
+          <label class="confirm-label">決済方法</label>
+          <select id="confirm-methodId" class="confirm-input">
+          </select>
+        </div>
+
+        <div class="confirm-row">
+          <label class="confirm-label">金額</label>
+          <input
+            type="number"
+            id="confirm-amount"
+            class="confirm-input"
+            min="0"
+            step="1"
+          />
+        </div>
+
+        <div class="confirm-row">
+          <label class="confirm-label">日付</label>
+          <input
+            type="date"
+            id="confirm-date"
+            class="confirm-input"
+          />
+        </div>
+
+        <div class="confirm-row">
+          <label class="confirm-label">メモ</label>
+          <input
+            type="text"
+            id="confirm-memo"
+            class="confirm-input"
+          />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="backToEdit()">修正する</button>
+        <button type="button" class="btn btn-primary" id="send-btn" onclick="sendData()">送信する</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

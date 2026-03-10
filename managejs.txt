@@ -1,0 +1,108 @@
+document.addEventListener("DOMContentLoaded", () => {
+  initializeDateFilters();
+  document.getElementById("search-btn").addEventListener("click", fetchHistory);
+});
+
+async function fetchHistory() {
+  const baseUrl = "https://script.google.com/macros/s/AKfycby78VA1z5mPYfZmwuQ_S2cJQhHGBBLu0VbLGLQWJ0ItfLck995GWGOJUXJNYFLtqqU/exec";
+  
+  // ログイン中のユーザーIDを取得（sessionStorageなどから）
+  const userId = sessionStorage.getItem("userId") || "testUser"; 
+  
+  // 各検索条件の取得
+  const year = document.getElementById("searchYear").value;
+  const month = document.getElementById("searchMonth").value;
+  const dateParam = `${year}${month}`; // 例: "202602"
+  const itemId = document.getElementById("searchItem").value.trim();
+  const methodId = document.getElementById("searchMethod").value.trim();
+  const minAmount = document.getElementById("minAmount").value;
+  const maxAmount = document.getElementById("maxAmount").value;
+  const sortKey = document.getElementById("sortKey").value;
+
+  // URLパラメータの組み立て
+  const params = new URLSearchParams({
+    userId: userId,
+    sortKey: sortKey,
+    date: dateParam
+  });
+
+  if (itemId) params.append("itemId", itemId);
+  if (methodId) params.append("methodId", methodId);
+  if (minAmount !== "") params.append("minAmount", minAmount);
+  if (maxAmount !== "") params.append("maxAmount", maxAmount);
+
+  const url = `${baseUrl}?${params.toString()}`;
+  
+  // UI状態の更新
+  const statusMsg = document.getElementById("status-message");
+  const table = document.getElementById("result-table");
+  const tbody = document.getElementById("result-body");
+  
+  statusMsg.style.display = "block";
+  statusMsg.textContent = "データを取得中...";
+  table.style.display = "none";
+  tbody.innerHTML = "";
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("通信に失敗しました");
+    
+    const data = await response.json();
+
+    console.log("data", data);
+    if (data.error) {
+      statusMsg.textContent = "エラー: " + data.error;
+      return;
+    }
+
+    if (data.length === 0) {
+      statusMsg.textContent = "該当するデータが見つかりませんでした。";
+      return;
+    }
+
+    // テーブルにデータを流し込む
+    data.forEach(row => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${row.date}</td>
+        <td>${row.itemId}</td>
+        <td>${row.methodId}</td>
+        <td>${Number(row.amount).toLocaleString()} 円</td>
+        <td>${row.memo || ""}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    statusMsg.style.display = "none";
+    table.style.display = "table";
+
+  } catch (error) {
+    console.error(error);
+    statusMsg.textContent = "エラーが発生しました。URLや権限を確認してください。";
+  }
+}
+
+/**
+ * 年月のセレクトボックスを初期化し、現在の年月を選択する
+ */
+function initializeDateFilters() {
+  const yearSelect = document.getElementById("searchYear");
+  const monthSelect = document.getElementById("searchMonth");
+  
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+
+  // 年の選択肢を作成 (例: 今年から3年前まで)
+  for (let i = 0; i < 4; i++) {
+    const year = currentYear - i;
+    const opt = document.createElement("option");
+    opt.value = year;
+    opt.textContent = `${year}年`;
+    yearSelect.appendChild(opt);
+  }
+
+  // 初期値を現在の年月にセット
+  yearSelect.value = currentYear;
+  monthSelect.value = currentMonth;
+}

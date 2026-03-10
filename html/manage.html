@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>履歴検索 - 家計簿管理</title>
+  <link rel="stylesheet" href="../css/manage.css?v=6">
+  <link rel="stylesheet" href="../css/header.css">
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js" defer></script>
+  <script src="../js/firebase.js" defer></script>
+  <script src="../js/firebaseDb.js?v=2" defer></script>
+  <script src="../js/utils.js?v=4" defer></script>
+  <script src="../js/login.js" defer></script>
+  <script src="../js/manage.js?v=2" defer></script>
+  <script src="../js/header.js" defer></script>
+</head>
+<body onload="checkAuth()">
+  <div id="app-header"></div>
+  <div class="page-wrapper">
+    <main class="card">
+      <header class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h1 class="card-title">データ履歴検索</h1>
+        <a href="chart.html" class="btn-chart-icon" title="グラフ分析ページへ" aria-label="グラフ分析ページへ">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" aria-hidden="true">
+            <!-- 背景円 -->
+            <circle cx="24" cy="24" r="24" fill="#eef2ff"/>
+            <!-- 棒グラフ 3本 -->
+            <rect x="8"  y="26" width="8" height="14" rx="2" fill="#4ade80"/>
+            <rect x="20" y="16" width="8" height="24" rx="2" fill="#f87171"/>
+            <rect x="32" y="20" width="8" height="20" rx="2" fill="#60a5fa"/>
+            <!-- 折れ線 -->
+            <polyline points="12,26 24,14 36,18" fill="none" stroke="#8b5cf6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="12" cy="26" r="2.5" fill="#8b5cf6"/>
+            <circle cx="24" cy="14" r="2.5" fill="#8b5cf6"/>
+            <circle cx="36" cy="18" r="2.5" fill="#8b5cf6"/>
+          </svg>
+        </a>
+      </header>
+
+      <section class="filter-section">
+        <div class="filter-grid">
+          <div class="form-row">
+            <label class="form-label">表示年月</label>
+            <div style="display: flex; gap: 8px;">
+              <select id="searchYear" class="form-input" style="width: 60%;">
+                </select>
+              <select id="searchMonth" class="form-input" style="width: 40%;">
+                <option value="">全範囲</option>
+                <option value="01">1月</option>
+                <option value="02">2月</option>
+                <option value="03">3月</option>
+                <option value="04">4月</option>
+                <option value="05">5月</option>
+                <option value="06">6月</option>
+                <option value="07">7月</option>
+                <option value="08">8月</option>
+                <option value="09">9月</option>
+                <option value="10">10月</option>
+                <option value="11">11月</option>
+                <option value="12">12月</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <label class="form-label" for="searchCategory">カテゴリ</label>
+            <select id="searchCategory" class="form-input">
+              <option value="">すべて</option>
+              <option value="1">収入</option>
+              <option value="2" selected>支出</option>
+              <option value="3">チャージ</option>
+            </select>
+          </div>
+          
+          <div class="form-row">
+            <label class="form-label" for="searchItem">項目</label>
+            <select id="searchItem" class="form-input">
+              <option value="">読み込み中...</option>
+            </select>
+          </div>
+          
+          <div class="form-row">
+            <label class="form-label" for="searchMethod">決済方法</label>
+            <select id="searchMethod" class="form-input">
+              <option value="">読み込み中...</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <label class="form-label">金額範囲</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="number" id="minAmount" class="form-input" placeholder="最小" style="width: 50%;">
+              <input type="number" id="maxAmount" class="form-input" placeholder="最大" style="width: 50%;">
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="form-label" for="sortKey">並び替え</label>
+            <select id="sortKey" class="form-input">
+              <option value="date_desc">日付：新しい順</option>
+              <option value="date_asc">日付：古い順</option>
+              <option value="amount_desc">金額：高い順</option>
+              <option value="amount_asc">金額：低い順</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="button" id="search-btn" class="btn btn-primary" style="width: 100%;">検索を実行する</button>
+      </section>
+
+      <div class="status-container">
+        <div id="status-message" class="loading" style="display:none;">検索中...</div>
+      </div>
+      
+      <div class="table-container">
+        <table class="result-table" id="result-table" style="display:none;">
+          <thead>
+            <tr>
+              <th>日付</th>
+              <th>項目</th>
+              <th>方法</th>
+              <th style="text-align: right;">金額</th>
+              <th>メモ</th>
+              <th style="width: 80px; text-align: center;">操作</th>
+            </tr>
+          </thead>
+          <tbody id="result-body">
+            </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- 削除確認モーダル -->
+  <div id="delete-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h2 class="modal-title">削除の確認</h2>
+      <p class="modal-message">このデータを削除してもよろしいですか？</p>
+      <div class="modal-actions">
+        <button class="btn btn-cancel" onclick="closeDeleteModal()">キャンセル</button>
+        <button class="btn btn-danger" onclick="confirmDelete()">削除する</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

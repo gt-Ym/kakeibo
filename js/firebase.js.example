@@ -1,0 +1,24 @@
+// firebase.js
+// Firebase の初期化。auth と db をグローバル変数として公開する。
+//
+// 【セットアップ手順】
+// 1. このファイルを js/firebase.js にコピーする
+//    cp js/firebase.js.example js/firebase.js
+// 2. Firebase Console (https://console.firebase.google.com/) でプロジェクトを作成する
+// 3. 「プロジェクトの設定」>「マイアプリ」から構成オブジェクトを取得し、下記に貼り付ける
+
+const firebaseConfig = {
+  apiKey:            "YOUR_API_KEY",
+  authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId:         "YOUR_PROJECT_ID",
+  storageBucket:     "YOUR_PROJECT_ID.firebasestorage.app",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId:             "YOUR_APP_ID",
+  measurementId:     "YOUR_MEASUREMENT_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+// 各ページから参照できるよう window に設定
+const auth = firebase.auth();
+const db   = firebase.firestore();

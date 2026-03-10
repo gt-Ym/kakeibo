@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>定期購入管理 - 家計簿</title>
+  <link rel="stylesheet" href="../css/subscription_manage.css">
+  <link rel="stylesheet" href="../css/header.css">
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js" defer></script>
+  <script src="../js/config.js" defer></script>
+  <script src="../js/firebase.js" defer></script>
+  <script src="../js/firebaseDb.js?v=2" defer></script>
+  <script src="../js/utils.js?v=4" defer></script>
+  <script src="../js/login.js" defer></script>
+  <script src="../js/header.js" defer></script>
+</head>
+<body onload="checkAuth()">
+  <div id="app-header"></div>
+  <div class="page-wrapper">
+    <main class="card">
+      <header class="card-header">
+        <div class="header-row">
+          <h1 class="card-title">定期購入管理</h1>
+          <div class="header-actions">
+            <a href="subscription_menu.html" class="btn btn-primary">新規登録</a>
+            <a href="menu.html" class="btn btn-outline">メニューへ</a>
+          </div>
+        </div>
+      </header>
+
+      <div class="status-container">
+        <div id="status-message" class="loading">読み込み中...</div>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="sub-table" id="sub-table" style="display:none;">
+          <thead>
+            <tr>
+              <th>項目</th>
+              <th>決済方法</th>
+              <th>金額</th>
+              <th>購入開始日</th>
+              <th>次回購入日</th>
+              <th>頻度</th>
+              <th>メモ</th>
+              <th style="text-align:center;">操作</th>
+            </tr>
+          </thead>
+          <tbody id="sub-body"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- 編集モーダル -->
+  <div id="edit-modal" class="modal" style="display:none;">
+    <div class="modal-content modal-content-wide">
+      <h2 class="modal-title">定期購入の編集</h2>
+      <div class="edit-form">
+        <div class="form-row">
+          <label for="edit-item">項目</label>
+          <select id="edit-item" class="form-control"></select>
+        </div>
+        <div class="form-row">
+          <label for="edit-method">決済方法</label>
+          <select id="edit-method" class="form-control"></select>
+        </div>
+        <div class="form-row">
+          <label for="edit-amount">金額（円）</label>
+          <input type="number" id="edit-amount" class="form-control" min="1">
+        </div>
+        <div class="form-row">
+          <label for="edit-next-date">次回購入日</label>
+          <input type="date" id="edit-next-date" class="form-control">
+        </div>
+        <div class="form-row">
+          <label for="edit-memo">メモ</label>
+          <input type="text" id="edit-memo" class="form-control">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-cancel" onclick="closeEditModal()">キャンセル</button>
+        <button id="edit-save-btn" class="btn btn-primary" onclick="saveEditSubscription()">保存する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 削除確認モーダル -->
+  <div id="delete-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h2 class="modal-title">削除の確認</h2>
+      <p class="modal-message">この定期購入データを削除してもよろしいですか？</p>
+      <div class="modal-actions">
+        <button class="btn btn-cancel" onclick="closeDeleteModal()">キャンセル</button>
+        <button class="btn btn-danger" onclick="confirmDelete()">削除する</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/subscription_manage.js" defer></script>
+</body>
+</html>

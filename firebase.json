@@ -1,0 +1,28 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      ".firebaserc",
+      "firestore.rules",
+      "functions/**",
+      "GAS/**",
+      "*.xlsx",
+      "ToDo",
+      "めも.xlsx",
+      "SETUP.md",
+      "node_modules/**"
+    ],
+    "redirects": [
+      {
+        "source": "/",
+        "destination": "/html/login.html",
+        "type": 302
+      }
+    ]
+  },
+  "firestore": {
+    "rules":   "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}

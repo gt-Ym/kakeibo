@@ -1,0 +1,14 @@
+/**
+ * GAS API エンドポイント設定
+ *
+ * 【セットアップ手順】
+ * 1. このファイルを js/config.js にコピーする
+ *    cp js/config.js.example js/config.js
+ * 2. Google Apps Script (https://script.google.com/) でスクリプトをデプロイし、
+ *    発行されたウェブアプリのURLを下記に貼り付ける
+ *
+ * URLを変更する場合はこのファイルのみ修正してください。
+ */
+
+// メインAPI: 定期購入の登録・更新・削除（main_post.gs）
+const GAS_MAIN_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";

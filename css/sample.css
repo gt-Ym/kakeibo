@@ -1,0 +1,24 @@
+.sample-form {
+  max-width: 320px;
+  margin: 1rem;
+}
+
+.sample-form .field {
+  margin-bottom: 1rem;
+}
+
+.sample-form label {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.sample-form input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem;
+}
+
+.sample-form #send-btn {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+}

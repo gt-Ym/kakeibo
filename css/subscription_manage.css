@@ -1,0 +1,335 @@
+/* ベースレイアウト */
+body {
+  font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+  background-color: #f4f7f9;
+  margin: 0;
+}
+
+.page-wrapper {
+  max-width: 1100px;
+  margin: 20px auto;
+  padding: 0 15px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+}
+
+/* ヘッダー */
+.card-header {
+  margin-bottom: 24px;
+  border-bottom: 2px solid #f0f2f5;
+  padding-bottom: 12px;
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.card-title {
+  font-size: 1.5rem;
+  color: #333;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ボタン */
+.btn {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-primary {
+  background-color: #7c3aed;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #6d28d9;
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: #6c757d;
+  border: 1px solid #adb5bd;
+}
+
+.btn-outline:hover {
+  background-color: #f8f9fa;
+}
+
+.btn-cancel {
+  background-color: #95a5a6;
+  color: white;
+}
+
+.btn-cancel:hover {
+  background-color: #7f8c8d;
+}
+
+.btn-danger {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #c0392b;
+}
+
+/* ステータスメッセージ */
+.status-container {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.loading {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* テーブルラッパー（横スクロール対応） */
+.table-wrapper {
+  overflow-x: auto;
+  margin-top: 8px;
+}
+
+/* テーブル */
+.sub-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.sub-table thead tr {
+  background-color: #f8f9fa;
+}
+
+.sub-table th {
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #555;
+  border-bottom: 2px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.sub-table td {
+  padding: 12px 14px;
+  font-size: 0.9rem;
+  color: #333;
+  border-bottom: 1px solid #f0f2f5;
+  vertical-align: middle;
+}
+
+.sub-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.sub-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+/* 金額列 */
+.amount-cell {
+  text-align: right;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+/* 次回購入日（青で強調） */
+.next-date-cell {
+  font-weight: bold;
+  color: #2563eb;
+  white-space: nowrap;
+}
+
+/* 購入開始日 */
+.start-date-cell {
+  color: #666;
+  white-space: nowrap;
+}
+
+/* 頻度バッジ */
+.frequency-badge {
+  display: inline-block;
+  background-color: #ede9fe;
+  color: #7c3aed;
+  font-size: 0.8rem;
+  font-weight: bold;
+  padding: 3px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+/* メモ */
+.memo-cell {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #666;
+  font-size: 0.85rem;
+}
+
+/* 操作ボタン */
+.action-cell {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.btn-edit {
+  padding: 5px 12px;
+  font-size: 0.82rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #7c3aed;
+  color: white;
+  transition: background 0.2s;
+  margin-right: 6px;
+}
+
+.btn-edit:hover {
+  background-color: #6d28d9;
+}
+
+.btn-delete {
+  padding: 5px 12px;
+  font-size: 0.82rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #e74c3c;
+  color: white;
+  transition: background 0.2s;
+}
+
+.btn-delete:hover {
+  background-color: #c0392b;
+}
+
+/* モーダル */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: white;
+  padding: 28px;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-title {
+  font-size: 1.3rem;
+  margin: 0 0 12px 0;
+  color: #333;
+}
+
+.modal-message {
+  margin: 0 0 24px 0;
+  color: #555;
+  font-size: 1rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+/* 編集モーダル */
+.modal-content-wide {
+  max-width: 480px;
+}
+
+.edit-form {
+  margin-bottom: 20px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.form-row label {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #555;
+}
+
+.form-control {
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15);
+}
+
+/* レスポンシブ */
+@media (max-width: 768px) {
+  .page-wrapper {
+    padding: 0 10px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .header-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: 20px;
+  }
+}

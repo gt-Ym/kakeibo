@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>マスター管理 | 家計簿</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="../css/header.css" />
+  <link rel="stylesheet" href="../css/master_manage.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js" defer></script>
+  <script src="../js/firebase.js" defer></script>
+  <script src="../js/firebaseDb.js?v=2" defer></script>
+  <script src="../js/utils.js?v=4" defer></script>
+  <script src="../js/login.js" defer></script>
+  <script src="../js/master_manage.js" defer></script>
+  <script src="../js/header.js" defer></script>
+</head>
+<body onload="checkAuth()">
+  <div id="app-header"></div>
+  <div class="page-wrapper">
+    <main class="card">
+      <div class="card-header">
+        <div class="header-row">
+          <h1 class="card-title">マスター管理</h1>
+          <button type="button" class="btn btn-primary" onclick="showAddModal()">+ 新規追加</button>
+        </div>
+      </div>
+
+      <!-- 種別タブ -->
+      <div class="type-tabs">
+        <button class="tab-btn active" id="tab-item"   onclick="switchType('item')">項目</button>
+        <button class="tab-btn"        id="tab-method" onclick="switchType('method')">方法</button>
+      </div>
+
+      <!-- カテゴリタブ -->
+      <div class="cat-tabs">
+        <button class="tab-btn active-income active" id="cat-1" onclick="switchCategory('1')">収入</button>
+        <button class="tab-btn" id="cat-2" onclick="switchCategory('2')">支出</button>
+        <button class="tab-btn" id="cat-3" onclick="switchCategory('3')">チャージ</button>
+      </div>
+
+      <!-- ユーザー選択（方法タブ時のみ表示） -->
+      <div id="user-select-row" class="user-select-row" style="display:none;">
+        <label for="target-user-select">対象ユーザー：</label>
+        <select id="target-user-select" class="user-select" onchange="onUserSelectChange()"></select>
+      </div>
+
+      <!-- 注意文（項目タブ時のみ表示） -->
+      <div id="info-note-item" class="info-note">
+        <i class="fas fa-exclamation-triangle"></i>
+        項目はすべてのユーザーで共有されます。変更は他のユーザーにも反映されます。
+      </div>
+
+      <!-- ステータス -->
+      <div id="status-msg" class="status-container" style="display:none;"></div>
+
+      <!-- テーブル -->
+      <div class="table-wrapper">
+        <table class="master-table">
+          <thead>
+            <tr>
+              <th style="width:36px;"></th>
+              <th>名前</th>
+              <th id="th-group-shared" style="display:none;">グループ共有</th>
+              <th>状態</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="master-tbody">
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 確定・キャンセルバー（変更があるときのみ表示） -->
+      <div id="confirm-bar" class="confirm-bar" style="display:none;">
+        <span class="confirm-bar-msg"><i class="fas fa-edit"></i> 未保存の変更があります</span>
+        <div class="confirm-bar-actions">
+          <button type="button" class="btn btn-cancel" onclick="cancelChanges()">キャンセル</button>
+          <button type="button" class="btn btn-primary" id="confirm-btn" onclick="confirmChanges()">確定</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 追加/編集モーダル -->
+  <div id="modal-edit" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h2 class="modal-title" id="modal-title">項目を追加</h2>
+      <div class="form-row">
+        <label for="modal-name">名前</label>
+        <input type="text" id="modal-name" class="form-control" placeholder="名前を入力してください" />
+      </div>
+      <div class="checkbox-row" id="group-shared-row" style="display:none;">
+        <input type="checkbox" id="modal-group-shared" />
+        <label for="modal-group-shared">グループ共有する</label>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-cancel" onclick="closeModal()">キャンセル</button>
+        <button type="button" class="btn btn-primary" id="modal-save-btn" onclick="saveModal()">保存</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

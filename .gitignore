@@ -1,0 +1,19 @@
+# 機密情報（各自の環境に合わせて設定するファイル）
+js/firebase.js
+js/config.js
+
+# Firebase
+.firebase/
+.firebaserc
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+
+# その他
+*.xlsx
+めも.xlsx
+ToDo

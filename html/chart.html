@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>データ分析 - 家計簿管理</title>
+  <link rel="stylesheet" href="../css/chart.css">
+  <link rel="stylesheet" href="../css/header.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js" defer></script>
+  <script src="../js/firebase.js" defer></script>
+  <script src="../js/firebaseDb.js?v=2" defer></script>
+  <script src="../js/utils.js?v=4" defer></script>
+  <script src="../js/login.js" defer></script>
+  <script src="../js/header.js" defer></script>
+</head>
+<body onload="checkAuth()">
+  <div id="app-header"></div>
+  <div class="page-wrapper">
+    <main class="card">
+      <header class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="card-header-left">
+          <h1 class="card-title">データ分析</h1>
+          <p>収入・支出のデータをグラフで可視化します。</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+        <a href="manage.html" class="btn-chart-icon" title="履歴検索ページへ" aria-label="履歴検索ページへ">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" aria-hidden="true">
+            <!-- 背景円 -->
+            <circle cx="24" cy="24" r="24" fill="#eef2ff"/>
+            <!-- テーブル外枠 -->
+            <rect x="8" y="12" width="32" height="24" rx="3" fill="none" stroke="#6366f1" stroke-width="2.5"/>
+            <!-- ヘッダー行の背景 -->
+            <rect x="8" y="12" width="32" height="8" rx="3" fill="#c7d2fe"/>
+            <rect x="8" y="17" width="32" height="3" fill="#c7d2fe"/>
+            <!-- 縦の区切り線 -->
+            <line x1="19" y1="12" x2="19" y2="36" stroke="#6366f1" stroke-width="1.5"/>
+            <line x1="30" y1="12" x2="30" y2="36" stroke="#6366f1" stroke-width="1.5"/>
+            <!-- 横の区切り線 -->
+            <line x1="8" y1="28" x2="40" y2="28" stroke="#6366f1" stroke-width="1.5"/>
+          </svg>
+        </a>
+        <div class="agg-controls">
+          <select id="aggregateYear" class="form-input"></select>
+          <button type="button" id="run-aggregation" class="btn btn-secondary">月次集計を実行</button>
+        </div>
+        </div>
+      </header>
+      <div id="agg-status" class="agg-status" style="display:none; margin-bottom: 12px;"></div>
+
+      <section class="filter-section">
+        <div class="filter-grid">
+          <div class="form-row">
+            <label class="form-label">対象年月</label>
+            <div style="display: flex; gap: 8px;">
+              <select id="searchYear" class="form-input" style="width: 60%;"></select>
+              <select id="searchMonth" class="form-input" style="width: 40%;">
+                <option value="">全範囲</option>
+                <option value="01">1月</option>
+                <option value="02">2月</option>
+                <option value="03">3月</option>
+                <option value="04">4月</option>
+                <option value="05">5月</option>
+                <option value="06">6月</option>
+                <option value="07">7月</option>
+                <option value="08">8月</option>
+                <option value="09">9月</option>
+                <option value="10">10月</option>
+                <option value="11">11月</option>
+                <option value="12">12月</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <button type="button" id="fetch-chart-data" class="btn btn-primary" style="width: 100%;">グラフを更新</button>
+      </section>
+
+      <div id="status-message" class="loading" style="display:none;"></div>
+
+      <!-- 円グラフカルーセル -->
+      <section class="chart-section">
+        <div class="carousel">
+          <button class="carousel-btn" id="pie-prev">&lt;</button>
+          <div class="carousel-track-wrapper" id="pie-wrapper">
+            <div class="carousel-track" id="pie-track">
+              <!-- Slide 0: 収入 -->
+              <div class="carousel-slide">
+                <h2 class="section-title income-title">収入<span class="section-total" data-total="income"></span></h2>
+                <div class="chart-grid">
+                  <div class="chart-container">
+                    <h3>カテゴリ別</h3>
+                    <canvas id="income-pie-chart"></canvas>
+                  </div>
+                  <div class="chart-container">
+                    <h3>受取方法別</h3>
+                    <canvas id="income-doughnut-chart"></canvas>
+                  </div>
+                </div>
+              </div>
+              <!-- Slide 1: 支出 -->
+              <div class="carousel-slide">
+                <h2 class="section-title expense-title">支出<span class="section-total" data-total="expense"></span></h2>
+                <div class="chart-grid">
+                  <div class="chart-container">
+                    <h3>カテゴリ別</h3>
+                    <canvas id="expense-pie-chart"></canvas>
+                  </div>
+                  <div class="chart-container">
+                    <h3>決済方法別</h3>
+                    <canvas id="expense-doughnut-chart"></canvas>
+                  </div>
+                </div>
+              </div>
+              <!-- Slide 2: チャージ -->
+              <div class="carousel-slide">
+                <h2 class="section-title charge-title">チャージ<span class="section-total" data-total="charge"></span></h2>
+                <div class="chart-grid">
+                  <div class="chart-container">
+                    <h3>カテゴリ別</h3>
+                    <canvas id="charge-pie-chart"></canvas>
+                  </div>
+                  <div class="chart-container">
+                    <h3>決済方法別</h3>
+                    <canvas id="charge-doughnut-chart"></canvas>
+                  </div>
+                </div>
+              </div>
+              <!-- Slide 3: 収支 -->
+              <div class="carousel-slide">
+                <h2 class="section-title balance-title">収支（収入 − 支出）<span class="section-total" data-total="balance"></span></h2>
+                <div class="chart-container balance-pie-container">
+                  <h3>収入 vs 支出</h3>
+                  <canvas id="balance-pie-chart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button class="carousel-btn" id="pie-next">&gt;</button>
+        </div>
+        <div class="carousel-indicators" id="pie-dots">
+          <button class="carousel-dot active">収入</button>
+          <button class="carousel-dot">支出</button>
+          <button class="carousel-dot">チャージ</button>
+          <button class="carousel-dot">収支</button>
+        </div>
+      </section>
+
+      <!-- 推移グラフカルーセル -->
+      <section class="chart-section">
+        <div class="carousel">
+          <button class="carousel-btn" id="line-prev">&lt;</button>
+          <div class="carousel-track-wrapper" id="line-wrapper">
+            <div class="carousel-track" id="line-track">
+              <!-- Slide 0: 収入 -->
+              <div class="carousel-slide">
+                <h2 class="section-title income-title">収入の推移<span class="section-total" data-total="income"></span></h2>
+                <div class="chart-container chart-container-line">
+                  <h3 id="income-line-title">日別収入の推移</h3>
+                  <canvas id="income-line-chart"></canvas>
+                </div>
+              </div>
+              <!-- Slide 1: 支出 -->
+              <div class="carousel-slide">
+                <h2 class="section-title expense-title">支出の推移<span class="section-total" data-total="expense"></span></h2>
+                <div class="chart-container chart-container-line">
+                  <h3 id="expense-line-title">日別支出の推移</h3>
+                  <canvas id="expense-line-chart"></canvas>
+                </div>
+              </div>
+              <!-- Slide 2: チャージ -->
+              <div class="carousel-slide">
+                <h2 class="section-title charge-title">チャージの推移<span class="section-total" data-total="charge"></span></h2>
+                <div class="chart-container chart-container-line">
+                  <h3 id="charge-line-title">日別チャージの推移</h3>
+                  <canvas id="charge-line-chart"></canvas>
+                </div>
+              </div>
+              <!-- Slide 3: 収支 -->
+              <div class="carousel-slide">
+                <h2 class="section-title balance-title">収支の推移<span class="section-total" data-total="balance"></span></h2>
+                <div class="chart-container chart-container-line">
+                  <h3 id="balance-line-title">日別収支の推移</h3>
+                  <canvas id="balance-line-chart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button class="carousel-btn" id="line-next">&gt;</button>
+        </div>
+        <div class="carousel-indicators" id="line-dots">
+          <button class="carousel-dot active">収入</button>
+          <button class="carousel-dot">支出</button>
+          <button class="carousel-dot">チャージ</button>
+          <button class="carousel-dot">収支</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script type="module" src="../js/chart.js?v=2"></script>
+</body>
+</html>

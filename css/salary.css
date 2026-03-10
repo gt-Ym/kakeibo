@@ -1,0 +1,323 @@
+/* salary.css - 給与一括入力ページ */
+
+body {
+  font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+  background-color: #f4f7f9;
+  margin: 0;
+}
+
+.page-wrapper {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 0 15px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+}
+
+.card-header {
+  margin-bottom: 20px;
+  border-bottom: 2px solid #f0f2f5;
+  padding-bottom: 16px;
+}
+
+.card-header .card-title {
+  font-size: 1.6rem;
+  color: #333;
+  margin: 0;
+}
+
+.card-subtitle {
+  color: #666;
+  font-size: 0.95rem;
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+/* ── 日付行 ── */
+.date-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px 16px;
+  flex-wrap: wrap;
+}
+
+.date-row label {
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+  font-size: 0.95rem;
+}
+
+.date-row .form-input {
+  max-width: 180px;
+}
+
+.date-hint {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+/* ── ツールバー ── */
+.table-toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+/* ── 汎用フォーム部品 ── */
+.form-input {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 0.88rem;
+  color: #374151;
+  background: #fff;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.form-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+
+/* ── テーブル ── */
+.table-scroll {
+  overflow-x: auto;
+  margin-bottom: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.salary-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 820px;
+}
+
+.salary-table thead th {
+  background: #f9fafb;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: #6b7280;
+  border-bottom: 2px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.salary-table tbody tr {
+  border-bottom: 1px solid #f0f2f5;
+  transition: background 0.1s;
+}
+
+.salary-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.salary-table tbody tr:hover {
+  background: #fafafa;
+}
+
+.salary-table td {
+  padding: 8px 10px;
+  vertical-align: middle;
+}
+
+/* テーブル内 input / select */
+.salary-table select.form-input,
+.salary-table input.form-input {
+  width: 100%;
+}
+
+.salary-table .col-item   { min-width: 150px; }
+.salary-table .col-method { min-width: 150px; }
+.salary-table .col-amount { min-width: 110px; }
+.salary-table .col-memo   { min-width: 160px; }
+
+.salary-table .row-amount {
+  text-align: right;
+}
+
+/* ── ドラッグハンドル列 ── */
+.col-drag {
+  width: 30px;
+  text-align: center;
+  padding: 0 4px;
+}
+
+.drag-handle {
+  cursor: grab;
+  font-size: 1.1rem;
+  color: #d1d5db;
+  user-select: none;
+  display: inline-block;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+
+.drag-handle:hover {
+  color: #9ca3af;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* ── カテゴリ列 ── */
+.col-category {
+  min-width: 90px;
+}
+
+/* ── 削除ボタン列 ── */
+.col-action {
+  width: 40px;
+  text-align: center;
+  padding: 4px;
+}
+
+.btn-delete {
+  background: none;
+  border: none;
+  color: #d1d5db;
+  font-size: 1.1rem;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, background 0.15s;
+}
+
+.btn-delete:hover {
+  color: #ef4444;
+  background: #fef2f2;
+}
+
+/* ── ドラッグ中の行 ── */
+.salary-table tr.dragging {
+  opacity: 0.4;
+}
+
+.salary-table tr.drag-over td {
+  border-top: 2px solid #6366f1;
+}
+
+/* ── 行のカテゴリ色（左端ハンドル列にボーダー） ── */
+.salary-table tr.income-row .col-drag {
+  border-left: 4px solid #4ade80;
+}
+
+.salary-table tr.expense-row .col-drag {
+  border-left: 4px solid #f87171;
+}
+
+/* ── ボタン ── */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: opacity 0.2s, background 0.15s;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #4f46e5;
+  color: #fff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid #d1d5db;
+  color: #374151;
+}
+
+.btn-outline:hover {
+  background: #f9fafb;
+}
+
+.btn-add {
+  background: #16a34a;
+  color: #fff;
+}
+
+.btn-add:hover {
+  background: #15803d;
+}
+
+.btn-restore {
+  background: transparent;
+  border: 1.5px solid #9ca3af;
+  color: #374151;
+}
+
+.btn-restore:hover {
+  background: #f3f4f6;
+}
+
+/* ── レスポンシブ ── */
+@media (max-width: 600px) {
+  .card {
+    padding: 16px;
+  }
+
+  .date-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .date-row .form-input {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .table-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

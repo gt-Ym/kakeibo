@@ -1,0 +1,13 @@
+{
+  "name": "kakeibo-import",
+  "version": "1.0.0",
+  "description": "Firestore data import script",
+  "main": "import.js",
+  "scripts": {
+    "start": "node import.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  },
+  "private": true
+}

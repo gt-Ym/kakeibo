@@ -1,0 +1,70 @@
+:root {
+  --app-header-height: 56px;
+}
+
+body.has-app-header {
+  padding-top: var(--app-header-height);
+}
+
+.app-header-root {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--app-header-height);
+  background: #111827;
+  color: #f9fafb;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.45);
+}
+
+.app-header-inner {
+  max-width: 960px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+}
+
+.app-header-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-header-user {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.app-header-logout {
+  padding: 5px 14px;
+  border: 1px solid #4b5563;
+  border-radius: 4px;
+  background: transparent;
+  color: #d1d5db;
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.app-header-logout:hover {
+  background: #1f2937;
+  color: #f9fafb;
+}
+
+.app-header-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f9fafb;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+}
+
+.app-header-title:hover {
+  text-decoration: underline;
+}
+

@@ -1,0 +1,455 @@
+/* ベースレイアウト */
+.page-wrapper {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 0 15px;
+  font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  padding: 24px;
+}
+
+.card-header {
+  margin-bottom: 24px;
+  border-bottom: 2px solid #f0f2f5;
+  padding-bottom: 12px;
+}
+
+.card-title {
+  font-size: 1.5rem;
+  color: #333;
+  margin: 0;
+}
+
+/* フィルタエリア（グリッドレイアウト） */
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #555;
+}
+
+.form-input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.form-input:focus {
+  border-color: #4a90e2;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+/* ボタン */
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-primary {
+  background-color: #4a90e2;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #357abd;
+}
+
+.btn-primary:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* テーブル → カード形式（全画面共通） */
+.table-container {
+  margin-top: 20px;
+}
+
+.result-table {
+  display: block;
+  width: 100%;
+  border: 0;
+  box-shadow: none;
+}
+
+.result-table thead {
+  display: none;
+}
+
+.result-table tbody {
+  display: block;
+}
+
+.result-table tbody tr {
+  display: block;
+  margin-bottom: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  padding: 12px;
+  position: relative;
+}
+
+.result-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.result-table td {
+  display: block;
+  padding: 0;
+  border: none;
+  text-align: left;
+}
+
+/* 日付（グレー、小さく） */
+.result-table .date-cell {
+  font-size: 0.75rem;
+  color: #999;
+  margin-bottom: 6px;
+}
+
+/* 項目名（大きく、カテゴリ別色分け） */
+.result-table .item-cell {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-bottom: 8px;
+  padding-right: 36px; /* 操作ボタン分のスペース */
+}
+
+.result-table .item-cell[data-category="1"] {
+  color: #2563eb; /* 収入: 青 */
+}
+
+.result-table .item-cell[data-category="2"] {
+  color: #dc2626; /* 支出: 赤 */
+}
+
+.result-table .item-cell[data-category="3"] {
+  color: #16a34a; /* チャージ: 緑 */
+}
+
+/* 決済方法と金額を同じ行に */
+.result-table .method-cell {
+  display: inline-block;
+  font-size: 0.9rem;
+  color: #555;
+  margin-right: 12px;
+}
+
+.result-table .amount-cell {
+  display: inline-block;
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #333;
+}
+
+/* メモ */
+.result-table .memo-cell {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 8px;
+  margin-left: 8px;
+}
+
+.result-table .memo-cell:empty {
+  display: none;
+}
+
+/* 操作ボタンを右上に配置 */
+.result-table .action-cell {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+/* ステータスメッセージ */
+.status-container {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.loading {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* 操作ボタン（三点リーダー） */
+.action-menu {
+  position: relative;
+  display: inline-block;
+}
+
+.menu-btn {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  color: #666;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.menu-btn:hover {
+  background-color: #f0f0f0;
+}
+
+.menu-dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  min-width: 120px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.menu-dropdown.show {
+  display: block;
+}
+
+.menu-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.menu-item:hover {
+  background-color: #f8f9fa;
+}
+
+.menu-item.edit {
+  color: #4a90e2;
+}
+
+.menu-item.delete {
+  color: #e74c3c;
+}
+
+/* 編集モード */
+.edit-input {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #4a90e2;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+/* 日付入力フィールドは半分のサイズで左詰め */
+.result-table .date-cell .edit-input {
+  width: 50%;
+}
+
+.edit-input:focus {
+  outline: none;
+  border-color: #357abd;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-save {
+  background-color: #27ae60;
+  color: white;
+}
+
+.btn-save:hover {
+  background-color: #229954;
+}
+
+.btn-cancel-edit {
+  background-color: #95a5a6;
+  color: white;
+}
+
+.btn-cancel-edit:hover {
+  background-color: #7f8c8d;
+}
+
+/* モーダル */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: white;
+  padding: 28px;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-title {
+  font-size: 1.3rem;
+  margin: 0 0 12px 0;
+  color: #333;
+}
+
+.modal-message {
+  margin: 0 0 24px 0;
+  color: #555;
+  font-size: 1rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btn-cancel {
+  background-color: #95a5a6;
+  color: white;
+}
+
+.btn-cancel:hover {
+  background-color: #7f8c8d;
+}
+
+.btn-danger {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #c0392b;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+.btn-chart-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  border-radius: 50%;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  flex-shrink: 0;
+}
+
+.btn-chart-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.btn-chart-icon svg circle:first-child {
+  transition: fill 0.15s;
+}
+
+.btn-chart-icon:hover svg circle:first-child {
+  fill: #dde4ff;
+}
+
+/* スマホ追加調整（768px以下） */
+@media (max-width: 768px) {
+  .page-wrapper {
+    padding: 0 10px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .card-header {
+    flex-direction: column !important;
+    gap: 12px;
+    align-items: flex-start !important;
+  }
+
+  .card-title {
+    font-size: 1.2rem;
+  }
+
+  .btn-secondary {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* フィルタグリッドをモバイル対応 */
+  .filter-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  /* 編集入力フィールドの調整 */
+  .edit-input {
+    width: 100%;
+    font-size: 1rem;
+  }
+
+  /* モーダルの調整 */
+  .modal-content {
+    width: 95%;
+    padding: 20px;
+  }
+}

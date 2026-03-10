@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>定期購入登録 | 家計簿</title>
+  <link rel="stylesheet" href="../css/subscription.css" />
+  <link rel="stylesheet" href="../css/header.css" />
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js" defer></script>
+  <script src="../js/config.js" defer></script>
+  <script src="../js/firebase.js" defer></script>
+  <script src="../js/firebaseDb.js?v=2" defer></script>
+  <script src="../js/utils.js?v=4" defer></script>
+  <script src="../js/login.js" defer></script>
+  <script src="../js/subscription.js" defer></script>
+  <script src="../js/header.js" defer></script>
+</head>
+<body onload="checkAuth()">
+  <div id="app-header"></div>
+  <div class="page-wrapper">
+    <main class="card" aria-labelledby="page-title">
+      <header class="card-header">
+        <h1 id="page-title" class="card-title">定期購入登録</h1>
+        <p class="card-subtitle">
+          定期的に発生する購入情報を登録します。
+        </p>
+      </header>
+
+      <form class="form" onsubmit="event.preventDefault(); addSubscription();">
+        <!-- 項目選択 -->
+        <div class="form-row">
+          <label for="itemId" class="form-label">
+            項目 <span class="required">＊</span>
+          </label>
+          <select
+            id="itemId"
+            name="itemId"
+            class="form-input"
+            required
+          >
+            <option value="">読み込み中...</option>
+          </select>
+          <p class="form-description">定期購入する項目を選択してください</p>
+        </div>
+
+        <!-- 決済方法選択 -->
+        <div class="form-row">
+          <label for="methodId" class="form-label">
+            決済方法 <span class="required">＊</span>
+          </label>
+          <select
+            id="methodId"
+            name="methodId"
+            class="form-input"
+            required
+          >
+            <option value="">読み込み中...</option>
+          </select>
+          <p class="form-description">決済方法を選択してください</p>
+        </div>
+
+        <!-- 金額 -->
+        <div class="form-row">
+          <label for="amount" class="form-label">
+            金額 <span class="required">＊</span>
+          </label>
+          <input
+            type="number"
+            id="amount"
+            name="amount"
+            class="form-input"
+            min="0"
+            step="1"
+            inputmode="decimal"
+            placeholder="例: 1980"
+            required
+          />
+          <p class="form-description">定期購入の金額を入力してください</p>
+        </div>
+
+        <!-- 開始日 -->
+        <div class="form-row">
+          <label for="startDate" class="form-label">
+            開始日 <span class="required">＊</span>
+          </label>
+          <input
+            type="date"
+            id="startDate"
+            name="startDate"
+            class="form-input"
+            required
+          />
+          <p class="form-description">定期購入を開始する日付を選択してください</p>
+        </div>
+
+        <!-- 頻度設定 -->
+        <div class="form-row">
+          <label class="form-label">
+            頻度 <span class="required">＊</span>
+          </label>
+          <div class="frequency-input-group">
+            <select id="frequencyType" name="frequencyType" class="form-input frequency-type" required>
+              <option value="">選択</option>
+              <option value="daily">日</option>
+              <option value="weekly">週</option>
+              <option value="monthly">月</option>
+              <option value="yearly">年</option>
+            </select>
+            <span class="frequency-separator">に</span>
+            <select id="frequencyValue" name="frequencyValue" class="form-input frequency-value" required>
+              <option value="">選択</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+            </select>
+            <span class="frequency-separator">回</span>
+          </div>
+          <p class="form-description">例: 「月に1回」「週に2回」など</p>
+        </div>
+
+        <!-- 次回購入日（自動計算・表示のみ） -->
+        <div class="form-row">
+          <label class="form-label">
+            次回購入日
+          </label>
+          <input
+            type="text"
+            id="nextPurchaseDateDisplay"
+            class="form-input"
+            readonly
+            placeholder="頻度と開始日から自動計算されます"
+          />
+          <p class="form-description">開始日と頻度から自動的に計算されます</p>
+        </div>
+
+        <!-- メモ -->
+        <div class="form-row">
+          <label for="memo" class="form-label">
+            メモ
+          </label>
+          <textarea
+            id="memo"
+            name="memo"
+            class="form-input"
+            rows="3"
+            placeholder="例: Netflix プレミアムプラン"
+          ></textarea>
+          <p class="form-description">定期購入に関する補足情報を入力できます</p>
+        </div>
+
+        <!-- ボタン -->
+        <div class="form-actions">
+          <button type="reset" class="btn btn-outline">
+            リセット
+          </button>
+          <button type="submit" class="btn btn-primary">
+            登録する
+          </button>
+        </div>
+      </form>
+    </main>
+  </div>
+</body>
+</html>

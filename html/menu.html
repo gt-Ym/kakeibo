@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>メニュー | 家計簿</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="../css/header.css" />
+  <link rel="stylesheet" href="../css/menu.css" />
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js" defer></script>
+  <script src="../js/firebase.js" defer></script>
+  <script src="../js/login.js" defer></script>
+  <script src="../js/header.js" defer></script>
+</head>
+<body onload="checkAuth()">
+  <div id="app-header"></div>
+  <div class="page-wrapper">
+    <main class="card">
+        <header class="card-header">
+            <h1 class="card-title">メインメニュー</h1>
+            <p>操作を選択してください。</p>
+        </header>
+        <div class="menu-grid">
+            <a href="record.html?categoryId=1" class="menu-card income">
+                <div class="menu-card-icon">
+                    <i class="fas fa-arrow-down"></i>
+                </div>
+                <div class="menu-card-content">
+                    <h2>収入入力</h2>
+                    <p>給与やボーナスなどの収入を記録します。</p>
+                </div>
+            </a>
+            <a href="record.html?categoryId=2" class="menu-card expense">
+                <div class="menu-card-icon">
+                    <i class="fas fa-arrow-up"></i>
+                </div>
+                <div class="menu-card-content">
+                    <h2>支出入力</h2>
+                    <p>日々の食費や交通費などの支出を記録します。</p>
+                </div>
+            </a>
+            <a href="record.html?categoryId=3" class="menu-card charge">
+                <div class="menu-card-icon">
+                    <i class="fas fa-charging-station"></i>
+                </div>
+                <div class="menu-card-content">
+                    <h2>チャージ入力</h2>
+                    <p>電子マネーや交通系ICへのチャージを記録します。</p>
+                </div>
+            </a>
+            <a href="manage.html" class="menu-card manage">
+                <div class="menu-card-icon">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <div class="menu-card-content">
+                    <h2>履歴・分析</h2>
+                    <p>記録したデータの確認、検索、グラフ分析を行います。</p>
+                </div>
+            </a>
+            <a href="subscription_menu.html" class="menu-card subscription">
+                <div class="menu-card-icon">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <div class="menu-card-content">
+                    <h2>定期収支</h2>
+                    <p>月額サービスなど定期的な収支情報を登録します。</p>
+                </div>
+            </a>
+            <a href="subscription_manage.html" class="menu-card sub-manage">
+                <div class="menu-card-icon">
+                    <i class="fas fa-list-alt"></i>
+                </div>
+                <div class="menu-card-content">
+                    <h2>定期購入管理</h2>
+                    <p>登録済みの定期購入データを一覧で確認・管理します。</p>
+                </div>
+            </a>
+            <a href="salary.html" class="menu-card salary">
+                <div class="menu-card-icon">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </div>
+                <div class="menu-card-content">
+                    <h2>給与入力</h2>
+                    <p>基本給・手当・控除など月次給与データを一括入力します。</p>
+                </div>
+            </a>
+            <a href="budget.html" class="menu-card budget">
+                <div class="menu-card-icon">
+                    <i class="fas fa-piggy-bank"></i>
+                </div>
+                <div class="menu-card-content">
+                    <h2>予算管理</h2>
+                    <p>月次の予算目標を設定し、実績との比較を確認します。</p>
+                </div>
+            </a>
+            <a href="master_manage.html" class="menu-card master" id="card-master-manage" style="display:none;">
+                <div class="menu-card-icon">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <div class="menu-card-content">
+                    <h2>マスター管理</h2>
+                    <p>項目・決済方法の追加、編集、表示/非表示、並び替えを行います。</p>
+                </div>
+            </a>
+        </div>
+    </main>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      if (sessionStorage.getItem("userName") === "admin") {
+        var card = document.getElementById("card-master-manage");
+        if (card) card.style.display = "";
+      }
+    });
+  </script>
+
+
+</body>
+</html>
