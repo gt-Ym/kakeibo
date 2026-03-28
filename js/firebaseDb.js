@@ -321,7 +321,7 @@ class TransactionRepository {
    * @returns {Promise<string>} 追加されたドキュメントID
    */
   async add(data) {
-    const docRef = await db.collection(`users/${this.uid}/transactions`).add({
+    const doc = {
       itemId:        data.itemId,
       itemName:      data.itemName,
       methodId:      data.methodId,
@@ -335,7 +335,14 @@ class TransactionRepository {
       groupId:       this.groupId || "",
       isGroupShared: data.isGroupShared || false,
       createdAt:     firebase.firestore.FieldValue.serverTimestamp(),
-    });
+    };
+    // USD 入力時の監査用フィールド（amount は常に円）
+    if (data.originalCurrency === "USD") {
+      doc.originalAmount   = data.originalAmount;
+      doc.originalCurrency = "USD";
+      doc.exchangeRate     = data.exchangeRate;
+    }
+    const docRef = await db.collection(`users/${this.uid}/transactions`).add(doc);
     return docRef.id;
   }
 
@@ -656,7 +663,7 @@ class SubscriptionRepository {
    * @returns {Promise<string>} 追加されたドキュメントID
    */
   async add(data) {
-    const docRef = await db.collection(`users/${this.uid}/subscriptions`).add({
+    const doc = {
       itemId:           data.itemId,
       itemName:         data.itemName,
       methodId:         data.methodId,
@@ -668,7 +675,14 @@ class SubscriptionRepository {
       frequencyValue:   Number(data.frequencyValue),
       nextPurchaseDate: data.nextPurchaseDate,
       memo:             data.memo || "",
-    });
+    };
+    // USD 入力時の監査用フィールド（amount は常に円）
+    if (data.originalCurrency === "USD") {
+      doc.originalAmount   = data.originalAmount;
+      doc.originalCurrency = "USD";
+      doc.exchangeRate     = data.exchangeRate;
+    }
+    const docRef = await db.collection(`users/${this.uid}/subscriptions`).add(doc);
     return docRef.id;
   }
 

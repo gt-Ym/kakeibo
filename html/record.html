@@ -7,14 +7,16 @@
   <link rel="stylesheet" href="../css/record.css" />
   <link rel="stylesheet" href="../css/header.css" />
   <link rel="stylesheet" href="../css/modal.css" />
+  <link rel="stylesheet" href="../css/currency.css" />
   <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js" defer></script>
   <script src="../js/firebase.js" defer></script>
   <script src="../js/config.js" defer></script>
-  <script src="../js/firebaseDb.js?v=2" defer></script>
+  <script src="../js/firebaseDb.js?v=3" defer></script>
   <script src="../js/utils.js?v=4" defer></script>
   <script src="../js/login.js" defer></script>
+  <script src="../js/currency.js" defer></script>
   <script src="../js/record.js" defer></script>
   <script src="../js/header.js" defer></script>
 </head>
@@ -92,6 +94,7 @@
         <div class="modal-step">ステップ 3/5</div>
       </div>
       <div class="modal-body">
+        <div id="amount-currency-container"></div>
         <input
           type="text"
           id="modal-amount"
@@ -182,6 +185,7 @@
             min="0"
             step="1"
           />
+          <div id="confirm-rate-info" class="currency-rate-info"></div>
         </div>
 
         <div class="confirm-row">

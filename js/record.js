@@ -7,9 +7,12 @@
 // ─────────────────────────────────────────
 
 const recordState = {
-  categoryId: null,
-  items:      [],   // [{ id, categoryId, name }, ...]
-  methods:    [],   // [{ id, categoryId, name }, ...]
+  categoryId:   null,
+  items:        [],   // [{ id, categoryId, name }, ...]
+  methods:      [],   // [{ id, categoryId, name }, ...]
+  currency:     "JPY",  // "JPY" | "USD"
+  usdAmount:    null,   // number | null — USD入力時の元の金額
+  exchangeRate: null,   // number | null — USD入力時の為替レート
 };
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -18,6 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
   recordState.categoryId = categoryId;
   openModal("modal-loading");
   updatePageTitle(categoryId);
+  initCurrencyToggle();
 
   requireAuth(() => {
     loadMasterData(categoryId).then(() => {
@@ -139,7 +143,8 @@ function validateStep(step) {
   if (step === 3) {
     const v = getStepValue(3);
     if (!isValidStepValue(3, v))               { showError("金額を入力してください");     return false; }
-    document.getElementById("modal-amount").value = Math.floor(v);
+    // JPY は整数に丸める。USD は小数点（セント）を保持する。
+    document.getElementById("modal-amount").value = recordState.currency === "JPY" ? Math.floor(v) : v;
   }
   if (step === 4) {
     if (!isValidStepValue(4, getStepValue(4))) { showError("日付を選択してください");     return false; }
@@ -174,15 +179,57 @@ function evalAmount(expr) {
 
 /**
  * 確認モーダルを表示し、入力値をコピーする。
+ * USD 入力時は為替レートを取得して円換算額を設定する。
  */
-function showConfirmModal() {
+async function showConfirmModal() {
   populateConfirmSelects();
   document.getElementById("confirm-itemId").value   = document.getElementById("modal-itemId").value;
   document.getElementById("confirm-methodId").value = document.getElementById("modal-methodId").value;
-  document.getElementById("confirm-amount").value   = document.getElementById("modal-amount").value;
   document.getElementById("confirm-date").value     = document.getElementById("modal-date").value;
   document.getElementById("confirm-memo").value     = document.getElementById("modal-memo").value;
-  openModal("modal-confirm");
+
+  const rawAmount  = evalAmount(document.getElementById("modal-amount").value);
+  const rateInfoEl = document.getElementById("confirm-rate-info");
+
+  if (recordState.currency === "USD") {
+    const dateISO = document.getElementById("modal-date").value; // YYYY-MM-DD
+
+    // 先にモーダルを開いて「取得中」を表示する
+    document.getElementById("confirm-amount").value = "";
+    if (rateInfoEl) {
+      rateInfoEl.textContent = "レート取得中...";
+      rateInfoEl.className   = "currency-rate-info loading";
+    }
+    openModal("modal-confirm");
+
+    try {
+      const { jpy, rate } = await CurrencyManager.convertUsdToJpy(rawAmount, dateISO);
+      recordState.usdAmount    = rawAmount;
+      recordState.exchangeRate = rate;
+      document.getElementById("confirm-amount").value = jpy;
+      if (rateInfoEl) {
+        rateInfoEl.textContent = `$${rawAmount} → ${CurrencyManager.formatJpy(jpy)}（1$ = ${rate.toFixed(2)}円）`;
+        rateInfoEl.className   = "currency-rate-info";
+      }
+    } catch (err) {
+      console.error("為替レート取得エラー:", err);
+      recordState.usdAmount    = rawAmount;
+      recordState.exchangeRate = null;
+      if (rateInfoEl) {
+        rateInfoEl.textContent = "レートの取得に失敗しました。円金額を直接入力してください。";
+        rateInfoEl.className   = "currency-rate-info error";
+      }
+    }
+  } else {
+    recordState.usdAmount    = null;
+    recordState.exchangeRate = null;
+    document.getElementById("confirm-amount").value = Math.floor(rawAmount);
+    if (rateInfoEl) {
+      rateInfoEl.textContent = "";
+      rateInfoEl.className   = "currency-rate-info";
+    }
+    openModal("modal-confirm");
+  }
 }
 
 /**
@@ -227,10 +274,11 @@ function backToEdit() {
 
 /**
  * 確認フォームから送信用の入力値を収集して返す。
- * @returns {{ uid: string, itemId: string, methodId: string, amount: number, date: string, memo: string }}
+ * USD 入力時は元の金額・レートを含む。
+ * @returns {Object}
  */
 function collectTransactionInput() {
-  return {
+  const base = {
     uid:      getCurrentUserId(),
     itemId:   document.getElementById("confirm-itemId").value,
     methodId: document.getElementById("confirm-methodId").value,
@@ -238,6 +286,12 @@ function collectTransactionInput() {
     date:     document.getElementById("confirm-date").value.replace(/-/g, ""),
     memo:     document.getElementById("confirm-memo").value.trim(),
   };
+  if (recordState.currency === "USD" && recordState.usdAmount !== null) {
+    base.originalAmount   = recordState.usdAmount;
+    base.originalCurrency = "USD";
+    if (recordState.exchangeRate !== null) base.exchangeRate = recordState.exchangeRate;
+  }
+  return base;
 }
 
 /**
@@ -321,6 +375,28 @@ async function sendData() {
     btn.disabled    = false;
     btn.textContent = "送信する";
   }
+}
+
+// ─────────────────────────────────────────
+// 通貨トグル初期化
+// ─────────────────────────────────────────
+
+/**
+ * 金額入力モーダルに円/ドル切替ボタンを挿入し、recordState.currency と同期する。
+ */
+function initCurrencyToggle() {
+  const container = document.getElementById("amount-currency-container");
+  if (!container) return;
+
+  CurrencyManager.createToggle(container, (currency) => {
+    recordState.currency = currency;
+    const amountInput = document.getElementById("modal-amount");
+    if (currency === "USD") {
+      amountInput.placeholder = "例: 9.99 または 10+5.50";
+    } else {
+      amountInput.placeholder = "例: 1500 または 500+200";
+    }
+  });
 }
 
 // ─────────────────────────────────────────

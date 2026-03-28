@@ -65,7 +65,44 @@ function populateAllRows() {
       nameMethod: row.dataset.defaultMethod,
     });
     updateRowClass(row, categoryId);
+    injectRowCurrencyToggle(row);
   });
+}
+
+/**
+ * 行の col-amount セルにインライントグルを追加する。
+ * すでにトグルが存在する行はスキップする。
+ * @param {HTMLElement} row
+ */
+function injectRowCurrencyToggle(row) {
+  const td = row.querySelector(".col-amount");
+  if (!td || td.querySelector(".currency-toggle-inline")) return;
+
+  const amountInput = td.querySelector(".row-amount");
+  if (!amountInput) return;
+
+  const toggleDiv = document.createElement("div");
+  toggleDiv.className = "currency-toggle-inline";
+
+  const jpyBtn = document.createElement("button");
+  jpyBtn.type          = "button";
+  jpyBtn.className     = "currency-btn-sm active";
+  jpyBtn.dataset.currency = "JPY";
+  jpyBtn.textContent   = "¥";
+  jpyBtn.onclick       = function () { handleRowCurrencyToggle(this); };
+
+  const usdBtn = document.createElement("button");
+  usdBtn.type          = "button";
+  usdBtn.className     = "currency-btn-sm";
+  usdBtn.dataset.currency = "USD";
+  usdBtn.textContent   = "$";
+  usdBtn.onclick       = function () { handleRowCurrencyToggle(this); };
+
+  toggleDiv.appendChild(jpyBtn);
+  toggleDiv.appendChild(usdBtn);
+  td.insertBefore(toggleDiv, amountInput);
+
+  amountInput.dataset.currency = "JPY";
 }
 
 /**
@@ -124,7 +161,7 @@ function updateRowClass(row, categoryId) {
  *
  * @param {{ categoryId?, nameItem?, nameMethod?, idItem?, idMethod?, amount?, memo? }} opts
  */
-function addRow({ categoryId = "1", nameItem = "", nameMethod = "", idItem = "", idMethod = "", amount = "", memo = "" } = {}) {
+function addRow({ categoryId = "1", nameItem = "", nameMethod = "", idItem = "", idMethod = "", amount = "", currency = "JPY", memo = "" } = {}) {
   const tbody = document.getElementById("salary-body");
   const tr    = document.createElement("tr");
   tr.dataset.category = categoryId;
@@ -139,7 +176,13 @@ function addRow({ categoryId = "1", nameItem = "", nameMethod = "", idItem = "",
     </td>
     <td class="col-item"><select class="row-item form-input"><option value="">選択してください</option></select></td>
     <td class="col-method"><select class="row-method form-input"><option value="">選択してください</option></select></td>
-    <td class="col-amount"><input type="number" class="row-amount form-input" min="0" step="1" placeholder="0"></td>
+    <td class="col-amount">
+      <div class="currency-toggle-inline">
+        <button type="button" class="currency-btn-sm active" data-currency="JPY" onclick="handleRowCurrencyToggle(this)">¥</button>
+        <button type="button" class="currency-btn-sm" data-currency="USD" onclick="handleRowCurrencyToggle(this)">$</button>
+      </div>
+      <input type="number" class="row-amount form-input" min="0" step="1" placeholder="0" data-currency="JPY">
+    </td>
     <td class="col-memo"><input type="text" class="row-memo form-input" placeholder="メモ（任意）"></td>
     <td class="col-action"><button class="btn-delete" onclick="deleteRow(this)" title="行を削除">×</button></td>
   `;
@@ -153,8 +196,15 @@ function addRow({ categoryId = "1", nameItem = "", nameMethod = "", idItem = "",
   updateRowClass(tr, categoryId);
 
   // 値を安全に設定（XSS 防止）
-  tr.querySelector(".row-amount").value = amount;
-  tr.querySelector(".row-memo").value   = memo;
+  const amountInput = tr.querySelector(".row-amount");
+  amountInput.value = amount;
+  tr.querySelector(".row-memo").value = memo;
+
+  // 通貨を復元（USD の場合はトグルを切り替える）
+  if (currency === "USD") {
+    const usdBtn = tr.querySelector('.currency-btn-sm[data-currency="USD"]');
+    if (usdBtn) handleRowCurrencyToggle(usdBtn);
+  }
 
   setupRowDragEvents(tr);
 }
@@ -165,6 +215,35 @@ function addRow({ categoryId = "1", nameItem = "", nameMethod = "", idItem = "",
 function deleteRow(btn) {
   const row = btn.closest("tr");
   if (row) row.remove();
+}
+
+// ─────────────────────────────────────────
+// 行内通貨トグルハンドラ
+// ─────────────────────────────────────────
+
+/**
+ * 給与行の通貨切替ボタンを押したときに呼ばれる。
+ * data-currency 属性を row-amount input に同期し、step/placeholder を切り替える。
+ * @param {HTMLButtonElement} btn - 押されたトグルボタン
+ */
+function handleRowCurrencyToggle(btn) {
+  const td          = btn.closest("td");
+  const currency    = btn.dataset.currency;
+  const amountInput = td.querySelector(".row-amount");
+
+  td.querySelectorAll(".currency-btn-sm").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+
+  amountInput.dataset.currency = currency;
+  if (currency === "USD") {
+    amountInput.step        = "0.01";
+    amountInput.placeholder = "0.00";
+  } else {
+    amountInput.step        = "1";
+    amountInput.placeholder = "0";
+    const v = parseFloat(amountInput.value);
+    if (!isNaN(v)) amountInput.value = Math.floor(v);
+  }
 }
 
 // ─────────────────────────────────────────
@@ -274,11 +353,13 @@ function saveToLocalStorage() {
   const rows = [];
   document.querySelectorAll("#salary-body tr").forEach(row => {
     if (!row.dataset.category) return;
+    const amountInput = row.querySelector(".row-amount");
     rows.push({
       categoryId: row.dataset.category,
       idItem:     row.querySelector(".row-item")?.value   || "",
       idMethod:   row.querySelector(".row-method")?.value || "",
-      amount:     row.querySelector(".row-amount")?.value || "",
+      amount:     amountInput?.value                      || "",
+      currency:   amountInput?.dataset.currency           || "JPY",
       memo:       row.querySelector(".row-memo")?.value   || "",
     });
   });
@@ -310,6 +391,7 @@ function loadFromLocalStorage() {
     idItem:     r.idItem,
     idMethod:   r.idMethod,
     amount:     r.amount,
+    currency:   r.currency || "JPY",
     memo:       r.memo,
   }));
 }
@@ -321,6 +403,7 @@ function loadFromLocalStorage() {
 /**
  * #salary-body の全行からデータを収集し、
  * 金額 > 0 かつ項目が選択されている行を Firestore へ一括登録する。
+ * USD 入力行は対象日付のレートで円換算する（全行同日のためレート取得は1回）。
  */
 async function submitSalary() {
   const uid       = getCurrentUserId();
@@ -329,7 +412,8 @@ async function submitSalary() {
 
   const date = dateInput.replace(/-/g, ""); // YYYYMMDD
 
-  const transactions = [];
+  // 行データを収集（通貨情報を含む）
+  const rawRows = [];
   document.querySelectorAll("#salary-body tr").forEach(row => {
     const categoryId = row.dataset.category;
     if (!categoryId) return;
@@ -339,18 +423,52 @@ async function submitSalary() {
     const amountInput  = row.querySelector(".row-amount");
     const memoInput    = row.querySelector(".row-memo");
 
-    const amount = Number(amountInput?.value);
-    if (!amount || amount <= 0) return;
+    const rawAmount = Number(amountInput?.value);
+    if (!rawAmount || rawAmount <= 0) return;
 
     const itemId     = itemSelect?.value                       || "";
     const itemName   = itemSelect?.selectedOptions[0]?.text   || "";
     const methodId   = methodSelect?.value                     || "";
     const methodName = methodSelect?.selectedOptions[0]?.text || "";
     const memo       = memoInput?.value.trim()                 || "";
+    const currency   = amountInput?.dataset.currency          || "JPY";
 
     if (!itemId) return;
 
-    transactions.push({ itemId, itemName, methodId, methodName, categoryId, amount, date, memo });
+    rawRows.push({ itemId, itemName, methodId, methodName, categoryId, rawAmount, currency, date, memo });
+  });
+
+  // USD 行がある場合は為替レートを1回だけ取得する
+  const hasUsd = rawRows.some(r => r.currency === "USD");
+  let usdRate  = null;
+  if (hasUsd) {
+    try {
+      usdRate = await CurrencyManager.fetchRate(dateInput); // YYYY-MM-DD
+    } catch (err) {
+      alert("為替レートの取得に失敗しました。時間をおいて再試行してください。");
+      return;
+    }
+  }
+
+  // 円換算して transactions を確定する
+  const transactions = rawRows.map(r => {
+    if (r.currency === "USD" && usdRate) {
+      return {
+        itemId: r.itemId, itemName: r.itemName,
+        methodId: r.methodId, methodName: r.methodName,
+        categoryId: r.categoryId, date: r.date, memo: r.memo,
+        amount:           Math.round(r.rawAmount * usdRate),
+        originalAmount:   r.rawAmount,
+        originalCurrency: "USD",
+        exchangeRate:     usdRate,
+      };
+    }
+    return {
+      itemId: r.itemId, itemName: r.itemName,
+      methodId: r.methodId, methodName: r.methodName,
+      categoryId: r.categoryId, date: r.date, memo: r.memo,
+      amount: r.rawAmount,
+    };
   });
 
   if (transactions.length === 0) {

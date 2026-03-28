@@ -1,0 +1,98 @@
+/* currency.css — 通貨切替トグルボタン・レート表示 */
+
+/* ─────────────────────────────────────────
+   モーダル・フォーム共通: トグルボタングループ
+   ───────────────────────────────────────── */
+
+.currency-toggle {
+  display: inline-flex;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #d1d5db;
+  margin-bottom: 8px;
+}
+
+.currency-btn {
+  appearance: none;
+  border: none;
+  background: #f9fafb;
+  color: #4b5563;
+  padding: 6px 18px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  line-height: 1.4;
+}
+
+.currency-btn + .currency-btn {
+  border-left: 1px solid #d1d5db;
+}
+
+.currency-btn.active {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.currency-btn:not(.active):hover {
+  background: #f3f4f6;
+}
+
+/* ─────────────────────────────────────────
+   為替レート情報テキスト
+   ───────────────────────────────────────── */
+
+.currency-rate-info {
+  font-size: 0.82rem;
+  color: #6b7280;
+  margin-top: 6px;
+  min-height: 1.3em;
+  line-height: 1.4;
+}
+
+.currency-rate-info.loading {
+  color: #9ca3af;
+}
+
+.currency-rate-info.error {
+  color: #ef4444;
+}
+
+/* ─────────────────────────────────────────
+   給与ページ: 行内インライントグル（コンパクト）
+   ───────────────────────────────────────── */
+
+.currency-toggle-inline {
+  display: flex;
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid #d1d5db;
+  margin-bottom: 3px;
+}
+
+.currency-btn-sm {
+  appearance: none;
+  border: none;
+  background: #f9fafb;
+  color: #4b5563;
+  padding: 2px 8px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  flex: 1;
+  line-height: 1.5;
+}
+
+.currency-btn-sm + .currency-btn-sm {
+  border-left: 1px solid #d1d5db;
+}
+
+.currency-btn-sm.active {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.currency-btn-sm:not(.active):hover {
+  background: #f3f4f6;
+}

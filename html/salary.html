@@ -6,14 +6,16 @@
   <title>給与入力 - 家計簿</title>
   <link rel="stylesheet" href="../css/salary.css">
   <link rel="stylesheet" href="../css/header.css">
+  <link rel="stylesheet" href="../css/currency.css">
   <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js" defer></script>
   <script src="../js/config.js" defer></script>
   <script src="../js/firebase.js" defer></script>
-  <script src="../js/firebaseDb.js?v=2" defer></script>
+  <script src="../js/firebaseDb.js?v=3" defer></script>
   <script src="../js/utils.js?v=4" defer></script>
   <script src="../js/login.js" defer></script>
+  <script src="../js/currency.js" defer></script>
   <script src="../js/salary.js?v=2b" defer></script>
   <script src="../js/header.js" defer></script>
 </head>
@@ -52,7 +54,7 @@
               <th class="col-category">カテゴリ</th>
               <th class="col-item">項目</th>
               <th class="col-method">決済方法</th>
-              <th class="col-amount">金額 (円)</th>
+              <th class="col-amount">金額</th>
               <th class="col-memo">メモ</th>
               <th class="col-action"></th>
             </tr>

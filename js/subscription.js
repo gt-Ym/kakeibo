@@ -7,8 +7,9 @@
 // ─────────────────────────────────────────
 
 const subscriptionState = {
-  items:   [],  // { id, categoryId, name }
-  methods: [],
+  items:    [],  // { id, categoryId, name }
+  methods:  [],
+  currency: "JPY",  // "JPY" | "USD"
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -25,10 +26,39 @@ document.addEventListener("DOMContentLoaded", () => {
     if (el) el.addEventListener("change", updateNextPurchaseDateDisplay);
   });
 
+  initSubscriptionCurrencyToggle();
+
   requireAuth(() => {
     fetchSubscriptionMasterData(categoryId);
   });
 });
+
+// ─────────────────────────────────────────
+// 通貨トグル初期化
+// ─────────────────────────────────────────
+
+/**
+ * 金額フィールドに円/ドル切替ボタンを挿入し、subscriptionState.currency と同期する。
+ */
+function initSubscriptionCurrencyToggle() {
+  const container = document.getElementById("subscription-currency-container");
+  if (!container) return;
+
+  CurrencyManager.createToggle(container, (currency) => {
+    subscriptionState.currency = currency;
+    const amountInput  = document.getElementById("amount");
+    const rateInfoEl   = document.getElementById("subscription-rate-info");
+    if (currency === "USD") {
+      amountInput.step        = "0.01";
+      amountInput.placeholder = "例: 9.99";
+      if (rateInfoEl) rateInfoEl.textContent = "登録時に開始日のレートで円換算します";
+    } else {
+      amountInput.step        = "1";
+      amountInput.placeholder = "例: 1980";
+      if (rateInfoEl) rateInfoEl.textContent = "";
+    }
+  });
+}
 
 // ─────────────────────────────────────────
 // マスターデータ取得
@@ -146,10 +176,33 @@ async function addSubscription() {
   const itemObj   = subscriptionState.items.find(i => i.id === itemId)     || {};
   const methodObj = subscriptionState.methods.find(m => m.id === methodId) || {};
 
+  const submitButton = document.querySelector('.btn-primary[type="submit"]');
+
+  // USD 入力時は開始日のレートで円換算する
+  let finalAmount   = amount;
+  let currencyMeta  = {};
+  if (subscriptionState.currency === "USD") {
+    const rateInfoEl = document.getElementById("subscription-rate-info");
+    try {
+      if (rateInfoEl) { rateInfoEl.textContent = "レート取得中..."; rateInfoEl.className = "currency-rate-info loading"; }
+      const { jpy, rate } = await CurrencyManager.convertUsdToJpy(amount, startDate);
+      finalAmount  = jpy;
+      currencyMeta = { originalAmount: amount, originalCurrency: "USD", exchangeRate: rate };
+      if (rateInfoEl) {
+        rateInfoEl.textContent = `$${amount} → ${CurrencyManager.formatJpy(jpy)}（1$ = ${rate.toFixed(2)}円）`;
+        rateInfoEl.className   = "currency-rate-info";
+      }
+    } catch (err) {
+      console.error("為替レート取得エラー:", err);
+      if (rateInfoEl) { rateInfoEl.textContent = "レートの取得に失敗しました。時間をおいて再試行してください。"; rateInfoEl.className = "currency-rate-info error"; }
+      if (submitButton) { submitButton.disabled = false; submitButton.textContent = "登録する"; }
+      return;
+    }
+  }
+
   // 次回購入日を YYYYMMDD に変換
   const nextPurchaseDateYMD = nextPurchaseDate.replace(/-/g, "");
 
-  const submitButton = document.querySelector('.btn-primary[type="submit"]');
   if (submitButton) { submitButton.disabled = true; submitButton.textContent = "登録中..."; }
 
   try {
@@ -161,12 +214,13 @@ async function addSubscription() {
       methodId,
       methodName:       methodObj.name || "",
       categoryId,
-      amount,
+      amount:           finalAmount,
       startDate,
       frequencyType,
       frequencyValue,
       nextPurchaseDate: nextPurchaseDateYMD,
       memo,
+      ...currencyMeta,
     });
 
     // GAS スプレッドシートにも登録（daily_trigger 用）
@@ -179,7 +233,7 @@ async function addSubscription() {
         item_name:          itemObj.name   || "",
         method_name:        methodObj.name || "",
         category_id:        categoryId,
-        amount,
+        amount:             finalAmount,
         start_date:         startDate,
         frequency_type:     frequencyType,
         frequency_value:    frequencyValue,

@@ -6,14 +6,16 @@
   <title>定期購入登録 | 家計簿</title>
   <link rel="stylesheet" href="../css/subscription.css" />
   <link rel="stylesheet" href="../css/header.css" />
+  <link rel="stylesheet" href="../css/currency.css" />
   <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js" defer></script>
   <script src="../js/config.js" defer></script>
   <script src="../js/firebase.js" defer></script>
-  <script src="../js/firebaseDb.js?v=2" defer></script>
+  <script src="../js/firebaseDb.js?v=3" defer></script>
   <script src="../js/utils.js?v=4" defer></script>
   <script src="../js/login.js" defer></script>
+  <script src="../js/currency.js" defer></script>
   <script src="../js/subscription.js" defer></script>
   <script src="../js/header.js" defer></script>
 </head>
@@ -66,6 +68,7 @@
           <label for="amount" class="form-label">
             金額 <span class="required">＊</span>
           </label>
+          <div id="subscription-currency-container"></div>
           <input
             type="number"
             id="amount"
@@ -77,7 +80,8 @@
             placeholder="例: 1980"
             required
           />
-          <p class="form-description">定期購入の金額を入力してください</p>
+          <p id="subscription-rate-info" class="currency-rate-info"></p>
+          <p class="form-description">定期購入の金額を入力してください（ドル入力時は開始日のレートで円換算して登録します）</p>
         </div>
 
         <!-- 開始日 -->
