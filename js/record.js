@@ -350,15 +350,19 @@ async function sendData() {
     // トランザクション保存
     const txRepo = new TransactionRepository(input.uid);
     await txRepo.add({
-      itemId:        input.itemId,
-      itemName:      itemObj.name        || "",
-      methodId:      input.methodId,
-      methodName:    methodObj.name      || "",
-      categoryId:    recordState.categoryId,
-      amount:        input.amount,
-      date:          input.date,
-      memo:          input.memo,
-      isGroupShared: methodObj.isGroupShared || false,
+      itemId:           input.itemId,
+      itemName:         itemObj.name        || "",
+      methodId:         input.methodId,
+      methodName:       methodObj.name      || "",
+      categoryId:       recordState.categoryId,
+      amount:           input.amount,
+      date:             input.date,
+      memo:             input.memo,
+      isGroupShared:    methodObj.isGroupShared || false,
+      // USD 入力時の監査用フィールド（undefined の場合 firebaseDb 側でスキップされる）
+      originalAmount:   input.originalAmount,
+      originalCurrency: input.originalCurrency,
+      exchangeRate:     input.exchangeRate,
     });
 
     await updateMonthlySummaryForDate(input.uid, input.date);

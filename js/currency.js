@@ -4,7 +4,9 @@
 
 const CurrencyManager = (() => {
   const CACHE_PREFIX = "fxRate_";
-  const API_BASE     = "https://api.frankfurter.app";
+  // api.frankfurter.app は api.frankfurter.dev/v1 へ 301 リダイレクトするため、
+  // ブラウザの CORS チェックが失敗するケースを避けて新 URL を直接指定する
+  const API_BASE     = "https://api.frankfurter.dev/v1";
 
   // ─────────────────────────────────────────
   // 為替レート取得（sessionStorage キャッシュ）
