@@ -565,8 +565,15 @@ function initCarousel(wrapperId, trackId, prevId, nextId, dotsId) {
     else                                moveTo(currentIndex);
   }
 
+  // インタラクティブ要素（select/input/button等）はドラッグ対象外。
+  //  - mousedown の preventDefault が select のドロップダウン展開を阻害するのを防ぐ
+  //  - 続くタッチ操作で意図せず carousel が動くのを防ぐ
+  const isInteractive = (target) =>
+    target && target.closest && target.closest("select, input, button, textarea, label, a");
+
   // マウス
   wrapper.addEventListener("mousedown", e => {
+    if (isInteractive(e.target)) return;
     e.preventDefault();
     startDrag(e.clientX);
     wrapper.style.cursor = "grabbing";
@@ -575,7 +582,10 @@ function initCarousel(wrapperId, trackId, prevId, nextId, dotsId) {
   window.addEventListener("mouseup",   e => { endDrag(e.clientX); wrapper.style.cursor = ""; });
 
   // タッチ
-  wrapper.addEventListener("touchstart", e => startDrag(e.touches[0].clientX),         { passive: true });
+  wrapper.addEventListener("touchstart", e => {
+    if (isInteractive(e.target)) return;
+    startDrag(e.touches[0].clientX);
+  }, { passive: true });
   wrapper.addEventListener("touchmove",  e => moveDrag(e.touches[0].clientX),           { passive: true });
   wrapper.addEventListener("touchend",   e => endDrag(e.changedTouches[0].clientX));
 
