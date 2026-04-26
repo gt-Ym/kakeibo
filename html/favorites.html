@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>お気に入り管理 | 家計簿</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="../css/header.css" />
+  <link rel="stylesheet" href="../css/favorites.css" />
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js" defer></script>
+  <script src="../js/firebase.js" defer></script>
+  <script src="../js/firebaseDb.js?v=4" defer></script>
+  <script src="../js/utils.js?v=4" defer></script>
+  <script src="../js/login.js" defer></script>
+  <script src="../js/favorites.js?v=1" defer></script>
+  <script src="../js/header.js" defer></script>
+</head>
+<body onload="checkAuth()">
+  <div id="app-header"></div>
+  <div class="page-wrapper">
+    <main class="card">
+      <header class="card-header">
+        <h1 class="card-title">お気に入り管理</h1>
+        <p class="card-subtitle">入力フォームの上部に表示するお気に入りを最大5件まで登録できます。</p>
+      </header>
+
+      <!-- カテゴリタブ -->
+      <div class="fav-tabs" id="cat-tabs">
+        <button type="button" class="fav-tab active" data-cat="1">収入</button>
+        <button type="button" class="fav-tab" data-cat="2">支出</button>
+        <button type="button" class="fav-tab" data-cat="3">チャージ</button>
+      </div>
+
+      <!-- 種別タブ -->
+      <div class="fav-tabs fav-tabs-sub" id="kind-tabs">
+        <button type="button" class="fav-tab active" data-kind="items">項目</button>
+        <button type="button" class="fav-tab" data-kind="methods">決済方法</button>
+      </div>
+
+      <div id="fav-status" class="fav-status" style="display:none;"></div>
+
+      <!-- お気に入り表示 -->
+      <section class="fav-section">
+        <h2 class="fav-section-title">
+          <i class="fas fa-star"></i>
+          お気に入り <span id="fav-count">0/5</span>
+        </h2>
+        <ul id="fav-list" class="fav-list">
+          <!-- 動的生成 -->
+        </ul>
+        <p id="fav-empty" class="fav-empty" style="display:none;">まだ登録されていません。下の候補から「+」で追加してください。</p>
+      </section>
+
+      <!-- 候補リスト -->
+      <section class="fav-section">
+        <h2 class="fav-section-title">候補（マスター項目）</h2>
+        <ul id="candidate-list" class="fav-list">
+          <!-- 動的生成 -->
+        </ul>
+        <p id="candidate-empty" class="fav-empty" style="display:none;">候補がありません。</p>
+      </section>
+
+      <div class="form-actions">
+        <a href="menu.html" class="btn btn-outline">メニューへ</a>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

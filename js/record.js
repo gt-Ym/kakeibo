@@ -13,6 +13,8 @@ const recordState = {
   currency:     "JPY",  // "JPY" | "USD"
   usdAmount:    null,   // number | null — USD入力時の元の金額
   exchangeRate: null,   // number | null — USD入力時の為替レート
+  favoriteItemIds:   [],  // 当カテゴリのお気に入り項目ID（順序保持）
+  favoriteMethodIds: [],  // 当カテゴリのお気に入り決済方法ID（順序保持）
 };
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -61,9 +63,9 @@ function openModal(modalId) {
   const modal = document.getElementById(modalId);
   if (modal) {
     modal.classList.add("active");
-    if (modalId === "modal-item")   showRecentItems();
+    if (modalId === "modal-item")   showFavoriteItems();
     if (modalId === "modal-method") {
-      showRecentMethods();
+      showFavoriteMethods();
       const methodTitle = document.querySelector("#modal-method .modal-title");
       if (methodTitle) {
         methodTitle.textContent = recordState.categoryId === CATEGORY.INCOME
@@ -419,7 +421,6 @@ async function sendData() {
     // 予算超過判定: 登録前は予算内 かつ 登録後に超過した場合のみ通知
     await notifyIfBudgetOver(input.uid, input, itemObj.name || "", prevTotal, budget, lineId);
 
-    saveRecentInput(input.itemId, input.methodId);
     showSuccess("送信しました。");
     window.location.href = "/html/menu.html";
   } catch (err) {
@@ -470,13 +471,20 @@ async function loadMasterData(categoryId) {
   }
 
   try {
-    await loadMasterIntoState(
-      uid,
-      categoryId,
-      recordState,
-      document.getElementById("modal-itemId"),
-      document.getElementById("modal-methodId")
-    );
+    // マスターデータとお気に入りを並列取得
+    const favRepo = new FavoriteRepository(uid);
+    const [_, favorites] = await Promise.all([
+      loadMasterIntoState(
+        uid,
+        categoryId,
+        recordState,
+        document.getElementById("modal-itemId"),
+        document.getElementById("modal-methodId")
+      ),
+      favRepo.get(),
+    ]);
+    recordState.favoriteItemIds   = favorites.items[categoryId]   || [];
+    recordState.favoriteMethodIds = favorites.methods[categoryId] || [];
   } catch (err) {
     console.error("マスターデータ取得エラー:", err);
     showError("データの取得に失敗しました。");
@@ -503,33 +511,17 @@ function updatePageTitle(categoryId) {
 }
 
 /**
- * 直近の入力項目・決済方法を localStorage に保存する。
- * @param {string} itemId   - 保存する項目 ID
- * @param {string} methodId - 保存する決済方法 ID
+ * お気に入り項目のクイック選択ボタンを表示する。
+ * 非表示/削除済みの項目はスキップする。
  */
-function saveRecentInput(itemId, methodId) {
-  const itemsKey   = `recentItems_${recordState.categoryId}`;
-  const methodsKey = `recentMethods_${recordState.categoryId}`;
-
-  let ri = JSON.parse(localStorage.getItem(itemsKey) || "[]").filter(id => id !== itemId);
-  ri.unshift(itemId);
-  localStorage.setItem(itemsKey, JSON.stringify(ri.slice(0, 3)));
-
-  let rm = JSON.parse(localStorage.getItem(methodsKey) || "[]").filter(id => id !== methodId);
-  rm.unshift(methodId);
-  localStorage.setItem(methodsKey, JSON.stringify(rm.slice(0, 3)));
-}
-
-/**
- * 最近使用した項目のクイック選択ボタンを表示する。
- */
-function showRecentItems() {
-  const recentItems = JSON.parse(localStorage.getItem(`recentItems_${recordState.categoryId}`) || "[]");
-  const container   = document.getElementById("recent-items-buttons");
-  if (recentItems.length === 0) { container.style.display = "none"; return; }
+function showFavoriteItems() {
+  const container = document.getElementById("recent-items-buttons");
+  const favIds    = recordState.favoriteItemIds || [];
+  if (favIds.length === 0) { container.style.display = "none"; return; }
 
   container.innerHTML = "";
-  recentItems.forEach(itemId => {
+  let rendered = 0;
+  favIds.forEach(itemId => {
     const item = recordState.items.find(i => i.id === itemId);
     if (!item) return;
     const btn       = document.createElement("button");
@@ -538,20 +530,23 @@ function showRecentItems() {
     btn.onclick     = () => applyRecentItem(itemId);
     btn.textContent = item.name;
     container.appendChild(btn);
+    rendered++;
   });
-  container.style.display = "flex";
+  container.style.display = rendered > 0 ? "flex" : "none";
 }
 
 /**
- * 最近使用した決済方法のクイック選択ボタンを表示する。
+ * お気に入り決済方法のクイック選択ボタンを表示する。
+ * 非表示/削除済みの決済方法はスキップする。
  */
-function showRecentMethods() {
-  const recentMethods = JSON.parse(localStorage.getItem(`recentMethods_${recordState.categoryId}`) || "[]");
-  const container     = document.getElementById("recent-methods-buttons");
-  if (recentMethods.length === 0) { container.style.display = "none"; return; }
+function showFavoriteMethods() {
+  const container = document.getElementById("recent-methods-buttons");
+  const favIds    = recordState.favoriteMethodIds || [];
+  if (favIds.length === 0) { container.style.display = "none"; return; }
 
   container.innerHTML = "";
-  recentMethods.forEach(methodId => {
+  let rendered = 0;
+  favIds.forEach(methodId => {
     const method = recordState.methods.find(m => m.id === methodId);
     if (!method) return;
     const btn       = document.createElement("button");
@@ -560,8 +555,9 @@ function showRecentMethods() {
     btn.onclick     = () => applyRecentMethod(methodId);
     btn.textContent = method.name;
     container.appendChild(btn);
+    rendered++;
   });
-  container.style.display = "flex";
+  container.style.display = rendered > 0 ? "flex" : "none";
 }
 
 /**

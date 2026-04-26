@@ -748,3 +748,57 @@ class SubscriptionRepository {
     await db.doc(`users/${this.uid}/subscriptions/${docId}`).delete();
   }
 }
+
+// ─────────────────────────────────────────
+// FavoriteRepository
+// users/{uid}/favorites/main
+// ドキュメント構造:
+//   {
+//     items:   { "1": [itemId, ...], "2": [...], "3": [...] },
+//     methods: { "1": [methodId, ...], "2": [...], "3": [...] },
+//     updatedAt: Timestamp
+//   }
+// 1ドキュメントに集約: ページロード時の読み取りを1回で済ませる。
+// 各配列の最大長は MAX_FAVORITES（クライアント側で制限）。
+// ─────────────────────────────────────────
+
+class FavoriteRepository {
+  constructor(uid) {
+    this.uid    = uid;
+    this.docRef = db.doc(`users/${uid}/favorites/main`);
+  }
+
+  static MAX_FAVORITES = 5;
+
+  /**
+   * お気に入り全体を取得。未作成なら空構造で返す。
+   * @returns {Promise<{items: Object, methods: Object}>}
+   */
+  async get() {
+    const snap = await this.docRef.get().catch(() => null);
+    const data = (snap && snap.exists) ? snap.data() : {};
+    return {
+      items:   data.items   || { "1": [], "2": [], "3": [] },
+      methods: data.methods || { "1": [], "2": [], "3": [] },
+    };
+  }
+
+  /**
+   * 指定カテゴリのお気に入り配列を上書き保存する（順序を含めて確定）。
+   * 種別: "items" | "methods"
+   * @param {"items"|"methods"} kind
+   * @param {string} categoryId
+   * @param {string[]} orderedIds - 並び順保持の ID 配列（最大 MAX_FAVORITES）
+   * @returns {Promise<void>}
+   */
+  async setList(kind, categoryId, orderedIds) {
+    if (kind !== "items" && kind !== "methods") {
+      throw new Error(`invalid kind: ${kind}`);
+    }
+    const limited = orderedIds.slice(0, FavoriteRepository.MAX_FAVORITES);
+    await this.docRef.set({
+      [kind]:    { [categoryId]: limited },
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+  }
+}
