@@ -440,6 +440,50 @@
   opacity: 0.9;
 }
 
+/* 表示期間: 範囲指定 */
+.period-range {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.period-range .form-input {
+  padding: 8px 10px;
+  font-size: 0.95rem;
+  flex: 0 0 auto;
+}
+
+.period-range .period-separator {
+  font-weight: bold;
+  color: #555;
+  padding: 0 4px;
+}
+
+/* プリセットボタン */
+.period-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.btn-preset {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  background: #ffffff;
+  color: #2563eb;
+  border: 1px solid #2563eb;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-preset:hover {
+  background: #2563eb;
+  color: #ffffff;
+}
+
 /* 推移グラフの項目フィルタ行 */
 .trend-filter-row {
   display: flex;

@@ -24,12 +24,30 @@ const trendChartByCat = {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-  // 0. 年月フィルタの初期化（今年・今月をデフォルト選択）
-  initializeDateFilters();
+  // 0. 表示期間セレクト（開始/終了の年）の初期化: 過去5年分を追加
+  //    デフォルト: 開始=今年1月、終了=今年当月
+  const now          = new Date();
+  const currentYear  = now.getFullYear();
+  const currentMonth = String(now.getMonth() + 1).padStart(2, "0");
+
+  const startYearSel = document.getElementById("startYear");
+  const endYearSel   = document.getElementById("endYear");
+  for (let i = 0; i < 5; i++) {
+    const y = currentYear - i;
+    [startYearSel, endYearSel].forEach(sel => {
+      const opt = document.createElement("option");
+      opt.value       = y;
+      opt.textContent = `${y}年`;
+      sel.appendChild(opt);
+    });
+  }
+  startYearSel.value = currentYear;
+  endYearSel.value   = currentYear;
+  document.getElementById("startMonth").value = "01";
+  document.getElementById("endMonth").value   = currentMonth;
 
   // 0b. 月次集計用年セレクトの初期化
   const aggYearSelect = document.getElementById("aggregateYear");
-  const currentYear   = new Date().getFullYear();
   for (let i = 0; i < 4; i++) {
     const y   = currentYear - i;
     const opt = document.createElement("option");
@@ -137,6 +155,14 @@ document.addEventListener("DOMContentLoaded", () => {
     .getElementById("run-aggregation")
     .addEventListener("click", runAggregation);
 
+  // 6c. プリセットボタン: 期間をワンクリックで設定して再描画
+  document.querySelectorAll(".btn-preset").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      await applyPeriodPreset(btn.dataset.preset);
+      fetchAndRenderCharts(...allCharts);
+    });
+  });
+
   // 7. Firebase Auth の認証状態が確定してから初期描画する
   requireAuth(() => fetchAndRenderCharts(...allCharts));
 });
@@ -146,10 +172,10 @@ document.addEventListener("DOMContentLoaded", () => {
 // ─────────────────────────────────────────
 
 /**
- * 年全体 or 月別に応じてデータ取得元を切り替え、全グラフを更新する。
+ * 表示期間（開始年月〜終了年月）に応じてデータ取得元を切り替え、全グラフを更新する。
  *
- * 【年全体（月未指定）】: monthlySummary から12件の集計ドキュメントを読み取る
- * 【月別（月指定）】    : transactions から当月のデータをリアルタイムで取得する
+ * 【単月（開始 === 終了）】: transactions から当月のデータを取得し日別集計
+ * 【範囲（複数月）】       : 範囲内全年の monthlySummary を並列取得し月別集計
  */
 async function fetchAndRenderCharts(
   incomePie, incomeDoughnut, incomeLine,
@@ -161,20 +187,51 @@ async function fetchAndRenderCharts(
   statusMsg.textContent   = "グラフデータを取得中...";
   statusMsg.style.display = "block";
 
-  const year   = document.getElementById("searchYear").value;
-  const month  = document.getElementById("searchMonth").value;
-  const userId = getCurrentUserId();
+  const startYear  = document.getElementById("startYear").value;
+  const startMonth = document.getElementById("startMonth").value;
+  const endYear    = document.getElementById("endYear").value;
+  const endMonth   = document.getElementById("endMonth").value;
+  const userId     = getCurrentUserId();
+
+  // バリデーション: 開始 ≤ 終了
+  if (Number(startYear) * 100 + Number(startMonth) > Number(endYear) * 100 + Number(endMonth)) {
+    statusMsg.textContent = "開始年月は終了年月より前に設定してください。";
+    return;
+  }
+
+  const isSingleMonth = startYear === endYear && startMonth === endMonth;
 
   try {
     let income, expense, charge;
+    let chartMonth, chartYear;  // LineChart.render() 用引数（単月時のみ意味を持つ）
 
-    if (!month) {
-      // ── 年全体表示: 月次サマリーから取得（最大12読み取り）──
+    if (isSingleMonth) {
+      // ── 単月（日別表示）: トランザクションからリアルタイム取得 ──
+      const [incomeData, expenseData, chargeData] = await Promise.all([
+        fetchCategoryData(userId, startYear, startMonth, "1"),
+        fetchCategoryData(userId, startYear, startMonth, "2"),
+        fetchCategoryData(userId, startYear, startMonth, "3"),
+      ]);
+      income  = { pieItemData: incomeData,  pieMethodData: incomeData,  lineData: incomeData  };
+      expense = { pieItemData: expenseData, pieMethodData: expenseData, lineData: expenseData };
+      charge  = { pieItemData: chargeData,  pieMethodData: chargeData,  lineData: chargeData  };
+      chartMonth = startMonth;
+      chartYear  = startYear;
+
+    } else {
+      // ── 範囲（月別表示）: 範囲内全年の月次サマリーを並列取得 ──
       const summaryRepo = new MonthlySummaryRepository(userId);
-      const yearSummary = await summaryRepo.getYear(year);
+      const years = [];
+      for (let y = Number(startYear); y <= Number(endYear); y++) years.push(String(y));
 
-      if (Object.keys(yearSummary).length === 0) {
-        statusMsg.textContent = `${year}年の月次集計データがありません。「月次集計を実行」で集計してください。`;
+      const yearSummaries = await Promise.all(years.map(y => summaryRepo.getYear(y)));
+      const summariesByYear = {};
+      years.forEach((y, i) => { summariesByYear[y] = yearSummaries[i]; });
+
+      const totalDocs = Object.values(summariesByYear)
+        .reduce((sum, ys) => sum + Object.keys(ys).length, 0);
+      if (totalDocs === 0) {
+        statusMsg.textContent = "選択範囲に月次集計データがありません。「月次集計を実行」で集計してください。";
         [incomePie, incomeDoughnut, incomeLine,
          expensePie, expenseDoughnut, expenseLine,
          chargePie,  chargeDoughnut,  chargeLine,
@@ -182,35 +239,25 @@ async function fetchAndRenderCharts(
         return;
       }
 
-      income  = summaryToCategoryData(yearSummary, "1", year);
-      expense = summaryToCategoryData(yearSummary, "2", year);
-      charge  = summaryToCategoryData(yearSummary, "3", year);
-
-    } else {
-      // ── 月別表示: トランザクションからリアルタイム取得 ──
-      const [incomeData, expenseData, chargeData] = await Promise.all([
-        fetchCategoryData(userId, year, month, "1"),
-        fetchCategoryData(userId, year, month, "2"),
-        fetchCategoryData(userId, year, month, "3"),
-      ]);
-      // トランザクション配列はそのままで全3チャートに使える（itemName / methodName / date / amount を持つ）
-      income  = { pieItemData: incomeData,  pieMethodData: incomeData,  lineData: incomeData  };
-      expense = { pieItemData: expenseData, pieMethodData: expenseData, lineData: expenseData };
-      charge  = { pieItemData: chargeData,  pieMethodData: chargeData,  lineData: chargeData  };
+      income  = summaryToCategoryDataRange(summariesByYear, "1", startYear, startMonth, endYear, endMonth);
+      expense = summaryToCategoryDataRange(summariesByYear, "2", startYear, startMonth, endYear, endMonth);
+      charge  = summaryToCategoryDataRange(summariesByYear, "3", startYear, startMonth, endYear, endMonth);
+      chartMonth = "";   // 月別集計
+      chartYear  = null; // 範囲データは事前に0埋め済みなので auto-fill 不要
     }
 
     statusMsg.style.display = "none";
 
     // 折れ線グラフのタイトルを更新
-    updateLineTitles(year, month);
+    updateLineTitles(startYear, startMonth, endYear, endMonth, isSingleMonth);
 
     // 見出しに合計金額を表示
     updateCategoryTotals(income, expense, charge);
 
     // 各カテゴリの3グラフ（円・ドーナツ・折れ線）を描画
-    renderCategoryCharts(incomePie,  incomeDoughnut,  incomeLine,  income,  month, year);
-    renderCategoryCharts(expensePie, expenseDoughnut, expenseLine, expense, month, year);
-    renderCategoryCharts(chargePie,  chargeDoughnut,  chargeLine,  charge,  month, year);
+    renderCategoryCharts(incomePie,  incomeDoughnut,  incomeLine,  income,  chartMonth, chartYear);
+    renderCategoryCharts(expensePie, expenseDoughnut, expenseLine, expense, chartMonth, chartYear);
+    renderCategoryCharts(chargePie,  chargeDoughnut,  chargeLine,  charge,  chartMonth, chartYear);
 
     // 収支グラフを描画（収入・支出どちらかにデータがあれば描画）
     const hasIncome  = income.lineData.some(d  => Number(d.amount)  > 0);
@@ -218,7 +265,7 @@ async function fetchAndRenderCharts(
 
     if (hasIncome || hasExpense) {
       balancePie.render(income.lineData, expense.lineData);
-      balanceLine.render(income.lineData, expense.lineData, month, year);
+      balanceLine.render(income.lineData, expense.lineData, chartMonth, chartYear);
     } else {
       balancePie.destroyChart();
       balanceLine.destroyChart();
@@ -231,9 +278,9 @@ async function fetchAndRenderCharts(
     }
 
     // 推移グラフ項目フィルタ用にデータをキャッシュし、項目 select を再構築する
-    chartDataCache.income  = { ...income,  month, year };
-    chartDataCache.expense = { ...expense, month, year };
-    chartDataCache.charge  = { ...charge,  month, year };
+    chartDataCache.income  = { ...income,  month: chartMonth, year: chartYear };
+    chartDataCache.expense = { ...expense, month: chartMonth, year: chartYear };
+    chartDataCache.charge  = { ...charge,  month: chartMonth, year: chartYear };
     populateItemSelectors();
 
     // ボタン縦位置・クローン canvas を同期
@@ -255,28 +302,32 @@ async function fetchAndRenderCharts(
 // ─────────────────────────────────────────
 
 /**
- * 月次サマリーを1カテゴリ分のグラフ用データに変換する（年全体表示専用）。
+ * 月次サマリーを1カテゴリ分のグラフ用データに変換する（範囲指定版）。
+ * 開始年月から終了年月まで1ヶ月ずつ巡回し、欠損月も lineData に 0 埋めで埋めることで
+ * LineChart 内の年単位 auto-fill を不要にする（chartYear=null 渡しと組み合わせる）。
  *
- * 返値の各配列フォーマット:
- *   pieItemData   : [{ itemName, amount, date }, ...]  ← PieChart(aggregateKey="itemName") 用
- *   pieMethodData : [{ methodName, amount, date }, ...]← PieChart(aggregateKey="methodName") 用
- *   lineData      : [{ date, amount }, ...]            ← LineChart / BalanceLine / BalancePie 用
- *                   ※ date = "YYYYMM" 形式 (12エントリ・ゼロ埋め済み)
- *
- * @param {Object} yearSummary  { "01": { "1": { items, methods, total }, ... }, ... }
- * @param {string} categoryId  "1" | "2" | "3"
- * @param {string} year        "2026"
+ * @param {Object} summariesByYear  { "2025": { "01": {...}, ... }, "2026": {...} }
+ * @param {string} categoryId       "1" | "2" | "3"
+ * @param {string} startYear        "2025"
+ * @param {string} startMonth       "01"
+ * @param {string} endYear          "2026"
+ * @param {string} endMonth         "12"
  * @returns {{ pieItemData: Array, pieMethodData: Array, lineData: Array }}
  */
-function summaryToCategoryData(yearSummary, categoryId, year) {
+function summaryToCategoryDataRange(summariesByYear, categoryId, startYear, startMonth, endYear, endMonth) {
   const pieItemData   = [];
   const pieMethodData = [];
   const lineData      = [];
 
-  for (let m = 1; m <= 12; m++) {
-    const month   = String(m).padStart(2, "0");
-    const catData = yearSummary[month]?.[categoryId];
-    const dateKey = `${year}${month}`;
+  let curY = Number(startYear);
+  let curM = Number(startMonth);
+  const endKey = Number(endYear) * 100 + Number(endMonth);
+
+  while (curY * 100 + curM <= endKey) {
+    const ystr    = String(curY);
+    const mstr    = String(curM).padStart(2, "0");
+    const dateKey = `${ystr}${mstr}`;
+    const catData = summariesByYear[ystr]?.[mstr]?.[categoryId];
 
     if (catData) {
       Object.entries(catData.items   || {}).forEach(([name, amount]) =>
@@ -289,6 +340,9 @@ function summaryToCategoryData(yearSummary, categoryId, year) {
     } else {
       lineData.push({ date: dateKey, amount: 0 });
     }
+
+    curM++;
+    if (curM > 12) { curM = 1; curY++; }
   }
 
   return { pieItemData, pieMethodData, lineData };
@@ -321,9 +375,14 @@ async function fetchCategoryData(userId, year, month, categoryId) {
 }
 
 /**
- * 折れ線グラフのタイトルを年月に応じて更新する
+ * 折れ線グラフのタイトルを期間に応じて更新する。
+ * @param {string}  startYear  "2025"
+ * @param {string}  startMonth "01"
+ * @param {string}  endYear    "2026"
+ * @param {string}  endMonth   "04"
+ * @param {boolean} isSingleMonth 単月（日別表示）かどうか
  */
-function updateLineTitles(year, month) {
+function updateLineTitles(startYear, startMonth, endYear, endMonth, isSingleMonth) {
   const ids = [
     ["income-line-title",  "収入"],
     ["expense-line-title", "支出"],
@@ -331,14 +390,19 @@ function updateLineTitles(year, month) {
     ["balance-line-title", "収支"],
   ];
 
+  const sm = parseInt(startMonth, 10);
+  const em = parseInt(endMonth, 10);
+  const sameYear = startYear === endYear;
+
   ids.forEach(([id, label]) => {
     const el = document.getElementById(id);
     if (!el) return;
-    if (month) {
-      const m = parseInt(month, 10);
-      el.textContent = `${year}年${m}月 日別${label}の推移`;
+    if (isSingleMonth) {
+      el.textContent = `${startYear}年${sm}月 日別${label}の推移`;
+    } else if (sameYear) {
+      el.textContent = `${startYear}年 ${sm}〜${em}月 月別${label}の推移`;
     } else {
-      el.textContent = `${year}年の月別${label}の推移`;
+      el.textContent = `${startYear}年${sm}月 〜 ${endYear}年${em}月 月別${label}の推移`;
     }
   });
 }
@@ -370,6 +434,88 @@ function updateCategoryTotals(income, expense, charge) {
       el.textContent = text;
     });
   });
+}
+
+// ─────────────────────────────────────────
+// 期間プリセット
+// ─────────────────────────────────────────
+
+/**
+ * プリセット名に応じて開始/終了の年月セレクトを更新する。
+ *  - "this-month" : 当月（→ 単月日別表示）
+ *  - "this-year"  : 今年1月 〜 当月
+ *  - "last-12"    : 直近12ヶ月（前年同月+1 〜 当月）
+ *  - "all"        : monthlySummary が存在する最古年1月 〜 当月
+ *
+ * @param {"this-month"|"this-year"|"last-12"|"all"} preset
+ */
+async function applyPeriodPreset(preset) {
+  const now          = new Date();
+  const currentYear  = now.getFullYear();
+  const currentMonth = now.getMonth() + 1; // 1〜12
+
+  let sy = currentYear, sm = currentMonth;
+  let ey = currentYear, em = currentMonth;
+
+  if (preset === "this-month") {
+    sy = ey = currentYear;
+    sm = em = currentMonth;
+  } else if (preset === "this-year") {
+    sy = currentYear; sm = 1;
+    ey = currentYear; em = currentMonth;
+  } else if (preset === "last-12") {
+    // 当月から 11 ヶ月前を開始月にする（合計12ヶ月）
+    const start = new Date(currentYear, currentMonth - 1 - 11, 1);
+    sy = start.getFullYear(); sm = start.getMonth() + 1;
+    ey = currentYear;          em = currentMonth;
+  } else if (preset === "all") {
+    const userId = getCurrentUserId();
+    if (!userId) return;
+    const summaryRepo = new MonthlySummaryRepository(userId);
+    const years = await summaryRepo.listYears();
+    if (years.length === 0) {
+      alert("月次集計データがありません。\n「月次集計を実行」を実行してください。");
+      return;
+    }
+    sy = Number(years[0]);                   sm = 1;
+    ey = Number(years[years.length - 1]);    em = 12;
+    // 最終年が現在年なら当月までに調整
+    if (ey === currentYear) em = currentMonth;
+  }
+
+  setPeriodSelects(sy, sm, ey, em);
+}
+
+/**
+ * 開始/終了の年月セレクトに値をセットする。
+ * 年セレクトに該当オプションが無い場合は動的に追加する（5年範囲を超える「全期間」用）。
+ */
+function setPeriodSelects(sy, sm, ey, em) {
+  ensureYearOption("startYear", sy);
+  ensureYearOption("endYear",   ey);
+  document.getElementById("startYear").value  = String(sy);
+  document.getElementById("startMonth").value = String(sm).padStart(2, "0");
+  document.getElementById("endYear").value    = String(ey);
+  document.getElementById("endMonth").value   = String(em).padStart(2, "0");
+}
+
+/**
+ * 指定 year がセレクトに無ければ option を追加する（昇順保持）。
+ */
+function ensureYearOption(selectId, year) {
+  const sel  = document.getElementById(selectId);
+  const yStr = String(year);
+  if ([...sel.options].some(o => o.value === yStr)) return;
+
+  const opt = document.createElement("option");
+  opt.value       = yStr;
+  opt.textContent = `${yStr}年`;
+  // 降順（新しい年が上）に挿入
+  let inserted = false;
+  for (const o of sel.options) {
+    if (Number(o.value) < year) { sel.insertBefore(opt, o); inserted = true; break; }
+  }
+  if (!inserted) sel.appendChild(opt);
 }
 
 // ─────────────────────────────────────────

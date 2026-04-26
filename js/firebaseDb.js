@@ -591,6 +591,34 @@ class MonthlySummaryRepository {
     snap.docs.forEach(doc => { result[doc.id] = doc.data(); });
     return result;
   }
+
+  /**
+   * 月次集計が存在する年の一覧を昇順で返す。
+   * 「全期間」プリセット用に最古年を判定するため使用。
+   *
+   * 注: Firestore はサブコレクションを書いただけの "ファントム親ドキュメント" を
+   *     collection().get() で返さないため、parent コレクション listing は使えない。
+   *     代わりに当年〜過去10年分の months サブコレクションを並列に limit(1) でプローブする。
+   *
+   * @returns {Promise<string[]>} ["2024", "2025", "2026"] 形式
+   */
+  async listYears() {
+    const currentYear  = new Date().getFullYear();
+    const PROBE_RANGE  = 10;
+
+    const probes = [];
+    for (let y = currentYear; y >= currentYear - PROBE_RANGE; y--) {
+      const yearStr = String(y);
+      const ref     = db.collection(`users/${this.uid}/monthlySummary/${yearStr}/months`).limit(1);
+      probes.push(
+        ref.get()
+          .then(snap => snap.empty ? null : yearStr)
+          .catch(() => null)
+      );
+    }
+    const results = await Promise.all(probes);
+    return results.filter(Boolean).sort();
+  }
 }
 
 // ─────────────────────────────────────────

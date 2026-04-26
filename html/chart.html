@@ -52,27 +52,34 @@
       <div id="agg-status" class="agg-status" style="display:none; margin-bottom: 12px;"></div>
 
       <section class="filter-section">
-        <div class="filter-grid">
-          <div class="form-row">
-            <label class="form-label">対象年月</label>
-            <div style="display: flex; gap: 8px;">
-              <select id="searchYear" class="form-input" style="width: 60%;"></select>
-              <select id="searchMonth" class="form-input" style="width: 40%;">
-                <option value="">全範囲</option>
-                <option value="01">1月</option>
-                <option value="02">2月</option>
-                <option value="03">3月</option>
-                <option value="04">4月</option>
-                <option value="05">5月</option>
-                <option value="06">6月</option>
-                <option value="07">7月</option>
-                <option value="08">8月</option>
-                <option value="09">9月</option>
-                <option value="10">10月</option>
-                <option value="11">11月</option>
-                <option value="12">12月</option>
-              </select>
-            </div>
+        <div class="form-row">
+          <label class="form-label">表示期間</label>
+          <div class="period-range">
+            <select id="startYear"  class="form-input"></select>
+            <select id="startMonth" class="form-input">
+              <option value="01">1月</option><option value="02">2月</option>
+              <option value="03">3月</option><option value="04">4月</option>
+              <option value="05">5月</option><option value="06">6月</option>
+              <option value="07">7月</option><option value="08">8月</option>
+              <option value="09">9月</option><option value="10">10月</option>
+              <option value="11">11月</option><option value="12">12月</option>
+            </select>
+            <span class="period-separator">〜</span>
+            <select id="endYear"    class="form-input"></select>
+            <select id="endMonth"   class="form-input">
+              <option value="01">1月</option><option value="02">2月</option>
+              <option value="03">3月</option><option value="04">4月</option>
+              <option value="05">5月</option><option value="06">6月</option>
+              <option value="07">7月</option><option value="08">8月</option>
+              <option value="09">9月</option><option value="10">10月</option>
+              <option value="11">11月</option><option value="12">12月</option>
+            </select>
+          </div>
+          <div class="period-presets">
+            <button type="button" class="btn btn-preset" data-preset="this-month">今月</button>
+            <button type="button" class="btn btn-preset" data-preset="this-year">今年</button>
+            <button type="button" class="btn btn-preset" data-preset="last-12">直近12ヶ月</button>
+            <button type="button" class="btn btn-preset" data-preset="all">全期間</button>
           </div>
         </div>
         <button type="button" id="fetch-chart-data" class="btn btn-primary" style="width: 100%;">グラフを更新</button>
@@ -219,6 +226,6 @@
     </main>
   </div>
 
-  <script type="module" src="../js/chart.js?v=4"></script>
+  <script type="module" src="../js/chart.js?v=5"></script>
 </body>
 </html>
