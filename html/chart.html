@@ -157,6 +157,12 @@
               <!-- Slide 0: 収入 -->
               <div class="carousel-slide">
                 <h2 class="section-title income-title">収入の推移<span class="section-total" data-total="income"></span></h2>
+                <div class="trend-filter-row">
+                  <label class="form-label">項目別表示:</label>
+                  <select class="form-input trend-item-select" data-cat="income">
+                    <option value="">全項目</option>
+                  </select>
+                </div>
                 <div class="chart-container chart-container-line">
                   <h3 id="income-line-title">日別収入の推移</h3>
                   <canvas id="income-line-chart"></canvas>
@@ -165,6 +171,12 @@
               <!-- Slide 1: 支出 -->
               <div class="carousel-slide">
                 <h2 class="section-title expense-title">支出の推移<span class="section-total" data-total="expense"></span></h2>
+                <div class="trend-filter-row">
+                  <label class="form-label">項目別表示:</label>
+                  <select class="form-input trend-item-select" data-cat="expense">
+                    <option value="">全項目</option>
+                  </select>
+                </div>
                 <div class="chart-container chart-container-line">
                   <h3 id="expense-line-title">日別支出の推移</h3>
                   <canvas id="expense-line-chart"></canvas>
@@ -173,6 +185,12 @@
               <!-- Slide 2: チャージ -->
               <div class="carousel-slide">
                 <h2 class="section-title charge-title">チャージの推移<span class="section-total" data-total="charge"></span></h2>
+                <div class="trend-filter-row">
+                  <label class="form-label">項目別表示:</label>
+                  <select class="form-input trend-item-select" data-cat="charge">
+                    <option value="">全項目</option>
+                  </select>
+                </div>
                 <div class="chart-container chart-container-line">
                   <h3 id="charge-line-title">日別チャージの推移</h3>
                   <canvas id="charge-line-chart"></canvas>
@@ -201,6 +219,6 @@
     </main>
   </div>
 
-  <script type="module" src="../js/chart.js?v=2"></script>
+  <script type="module" src="../js/chart.js?v=3"></script>
 </body>
 </html>

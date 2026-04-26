@@ -439,3 +439,25 @@
   margin-left: 10px;
   opacity: 0.9;
 }
+
+/* 推移グラフの項目フィルタ行 */
+.trend-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 14px;
+  flex-wrap: wrap;
+}
+
+.trend-filter-row .form-label {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.trend-filter-row .trend-item-select {
+  flex: 1;
+  max-width: 280px;
+  min-width: 140px;
+  padding: 6px 10px;
+  font-size: 0.92rem;
+}

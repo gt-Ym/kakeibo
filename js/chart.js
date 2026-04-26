@@ -9,6 +9,20 @@ let syncLineButtons = () => {};
 let syncPieClones   = () => {};
 let syncLineClones  = () => {};
 
+// 推移グラフの項目フィルタ用: 取得済みデータと LineChart インスタンスをキャッシュ
+//   ・DB 再取得を避けて項目切替時の再描画に利用する
+//   ・month / year は LineChart.render() の引数復元のため保持
+const chartDataCache = {
+  income:  null,  // { pieItemData, pieMethodData, lineData, month, year }
+  expense: null,
+  charge:  null,
+};
+const trendChartByCat = {
+  income:  null,  // LineChart インスタンス（DOMContentLoaded で代入）
+  expense: null,
+  charge:  null,
+};
+
 document.addEventListener("DOMContentLoaded", () => {
   // 0. 年月フィルタの初期化（今年・今月をデフォルト選択）
   initializeDateFilters();
@@ -92,6 +106,26 @@ document.addEventListener("DOMContentLoaded", () => {
     chargePie, chargeDoughnut, chargeLine,
     balancePie, balanceLine,
   ];
+
+  // 5b. 推移グラフのインスタンスをカテゴリキーで参照可能にする
+  trendChartByCat.income  = incomeLine;
+  trendChartByCat.expense = expenseLine;
+  trendChartByCat.charge  = chargeLine;
+
+  // 5c. 項目フィルタ select の change を委譲リスナーで処理（クローンスライドにも対応）
+  document.addEventListener("change", (e) => {
+    const sel = e.target.closest(".trend-item-select");
+    if (!sel) return;
+    const cat = sel.dataset.cat;
+    if (!cat || !trendChartByCat[cat]) return;
+
+    // 同カテゴリの全 select（クローン含む）の値を同期
+    document.querySelectorAll(`.trend-item-select[data-cat="${cat}"]`).forEach(s => {
+      if (s !== sel) s.value = sel.value;
+    });
+
+    rerenderTrendChart(cat);
+  });
 
   // 6. 「グラフを更新」ボタン
   document
@@ -195,6 +229,12 @@ async function fetchAndRenderCharts(
       statusMsg.textContent   = "表示するデータがありません。";
       statusMsg.style.display = "block";
     }
+
+    // 推移グラフ項目フィルタ用にデータをキャッシュし、項目 select を再構築する
+    chartDataCache.income  = { ...income,  month, year };
+    chartDataCache.expense = { ...expense, month, year };
+    chartDataCache.charge  = { ...charge,  month, year };
+    populateItemSelectors();
 
     // ボタン縦位置・クローン canvas を同期
     requestAnimationFrame(() => {
@@ -330,6 +370,63 @@ function updateCategoryTotals(income, expense, charge) {
       el.textContent = text;
     });
   });
+}
+
+// ─────────────────────────────────────────
+// 推移グラフ: 項目フィルタ
+// ─────────────────────────────────────────
+
+/**
+ * キャッシュされた pieItemData から項目名を抽出して、推移グラフの select を再構築する。
+ * 全クローンスライドの select も class セレクタで一括更新する。
+ * 既存の選択値はキャッシュ後の項目一覧に存在すれば維持する。
+ */
+function populateItemSelectors() {
+  ["income", "expense", "charge"].forEach(cat => {
+    const data = chartDataCache[cat];
+    if (!data) return;
+
+    const items = [...new Set(data.pieItemData.map(d => d.itemName).filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b, "ja"));
+
+    document.querySelectorAll(`.trend-item-select[data-cat="${cat}"]`).forEach(sel => {
+      const prev = sel.value;
+      sel.innerHTML = '<option value="">全項目</option>';
+      items.forEach(name => {
+        const opt = document.createElement("option");
+        opt.value       = name;
+        opt.textContent = name;
+        sel.appendChild(opt);
+      });
+      if (prev && items.includes(prev)) sel.value = prev;
+    });
+  });
+}
+
+/**
+ * 指定カテゴリの推移グラフを、キャッシュデータと現在の項目フィルタで再描画する。
+ *   ・全項目: lineData（合計）をそのまま描画
+ *   ・特定項目: pieItemData を itemName で絞り込んで日/月別合計に再集計
+ * @param {"income"|"expense"|"charge"} cat
+ */
+function rerenderTrendChart(cat) {
+  const cached = chartDataCache[cat];
+  const chart  = trendChartByCat[cat];
+  if (!cached || !chart) return;
+
+  const sel        = document.querySelector(`.trend-item-select[data-cat="${cat}"]`);
+  const itemFilter = sel ? sel.value : "";
+
+  const dataToRender = !itemFilter
+    ? cached.lineData
+    : cached.pieItemData
+        .filter(d => d.itemName === itemFilter)
+        .map(d => ({ date: d.date, amount: d.amount }));
+
+  chart.render(dataToRender, cached.month, cached.year);
+
+  // 項目フィルタ変更後もカルーセルクローンへ反映
+  requestAnimationFrame(() => syncLineClones());
 }
 
 // ─────────────────────────────────────────
