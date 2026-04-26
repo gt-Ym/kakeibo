@@ -42,8 +42,18 @@ function startInput() {
   openModal("modal-item");
 }
 
+// モーダルID → 開いた直後にフォーカスする入力要素のID
+const FOCUS_TARGETS = {
+  "modal-item":           "modal-itemId",
+  "modal-method":         "modal-methodId",
+  "modal-amount-overlay": "modal-amount",
+  "modal-date-overlay":   "modal-date",
+  "modal-memo-overlay":   "modal-memo",
+  "modal-confirm":        "confirm-amount",
+};
+
 /**
- * 指定モーダルを開き、他を閉じる。
+ * 指定モーダルを開き、他を閉じる。主入力に自動フォーカスする。
  * @param {string} modalId - 開くモーダルの要素 ID
  */
 function openModal(modalId) {
@@ -60,6 +70,14 @@ function openModal(modalId) {
           ? "受取方法を選択してください"
           : "決済方法を選択してください";
       }
+    }
+    // モーダル表示完了後に主入力へフォーカス（Enter キー操作のため）
+    const focusId = FOCUS_TARGETS[modalId];
+    if (focusId) {
+      setTimeout(() => {
+        const el = document.getElementById(focusId);
+        if (el) el.focus();
+      }, 50);
     }
   }
 }
@@ -93,6 +111,37 @@ function previousStep(currentStep) {
   const map = { 2: "modal-item", 3: "modal-method", 4: "modal-amount-overlay", 5: "modal-date-overlay" };
   openModal(map[currentStep]);
 }
+
+// ─────────────────────────────────────────
+// Enter キー対応（モーダル別の進行）
+// ─────────────────────────────────────────
+
+// モーダルID → Enter 押下時に呼び出す関数
+const ENTER_HANDLERS = {
+  "modal-item":           () => nextStep(1),
+  "modal-method":         () => nextStep(2),
+  "modal-amount-overlay": () => nextStep(3),
+  "modal-date-overlay":   () => nextStep(4),
+  "modal-memo-overlay":   () => nextStep(5),
+  "modal-confirm":        () => sendData(),
+};
+
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+  // IME 変換確定時の Enter は無視（メモ入力の日本語確定など）
+  if (e.isComposing) return;
+  // 修飾キー併用時は通常動作に譲る
+  if (e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) return;
+
+  const active = document.querySelector(".modal-overlay.active");
+  if (!active) return;
+
+  const handler = ENTER_HANDLERS[active.id];
+  if (!handler) return;
+
+  e.preventDefault();
+  handler();
+});
 
 // ─────────────────────────────────────────
 // バリデーション（責務分離）
